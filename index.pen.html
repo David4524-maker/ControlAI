@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es" data-theme="light" data-interface="default">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,7 @@
   <title>ControlAI — Reta a la IA</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
   <style>
-    /* ============ 1. VARIABLES DE TEMA (claro/oscuro) ============ */
+    /* ============ VARIABLES DE TEMA ============ */
     :root{
       --bg:#ffffff; --text:#0b0f14; --muted:#5b6675;
       --card:#f0f4f8; --border:#d5dde5;
@@ -18,6 +18,9 @@
       --prompt-bg:#ba7958; --rule-bg:#800000;
       --shadow:0 6px 20px rgba(0,0,0,.10);
       --radius:12px;
+      --brand-font:Arial,Helvetica,sans-serif;
+      --prompt-radius:28px;
+      --panel-radius:12px;
     }
     [data-theme="dark"]{
       --bg:#0e131a; --text:#e8eef5; --muted:#9aa7b4;
@@ -29,52 +32,116 @@
       --shadow:0 6px 20px rgba(0,0,0,.45);
     }
 
-    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
+    /* ============================================================
+       INTERFACES IA — paletas inspiradas en cada asistente
+       ============================================================ */
+
+    /* 💬 ChatGPT (verde OpenAI + gris pizarra) */
+    [data-interface="chatgpt"]{
+      --primary:#10a37f; --success:#10a37f; --warn:#f59e0b;
+      --danger:#ef4444; --accent:#10a37f;
+      --prompt-bg:#40414f; --rule-bg:#10a37f;
+      --brand-font:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    }
+    [data-theme="dark"][data-interface="chatgpt"]{
+      --primary:#19c37d; --success:#19c37d; --accent:#19c37d;
+      --prompt-bg:#2a2b32; --rule-bg:#0d8f6d;
+    }
+
+    /* ✨ Gemini (azul Google + morado) */
+    [data-interface="gemini"]{
+      --primary:#4285f4; --success:#34a853; --warn:#fbbc04;
+      --danger:#ea4335; --accent:#9b72cb;
+      --prompt-bg:#4285f4; --rule-bg:#9b72cb;
+      --brand-font:'Google Sans',Roboto,Arial,sans-serif;
+      --prompt-radius:36px;
+    }
+    [data-theme="dark"][data-interface="gemini"]{
+      --primary:#8ab4f8; --success:#81c995; --warn:#fdd663;
+      --danger:#f28b82; --accent:#c58af9;
+      --prompt-bg:#3b4c8a; --rule-bg:#6b3fa0;
+    }
+
+    /* 🎨 Claude (naranja terracota + crema) */
+    [data-interface="claude"]{
+      --primary:#d97757; --success:#2d8659; --warn:#c47d3a;
+      --danger:#b94343; --accent:#c96442;
+      --prompt-bg:#d97757; --rule-bg:#c96442;
+      --brand-font:'Tiempos Text',Georgia,'Times New Roman',serif;
+      --prompt-radius:18px; --panel-radius:14px;
+    }
+    [data-theme="dark"][data-interface="claude"]{
+      --primary:#e89574; --success:#4caf7d; --warn:#e0a15f;
+      --danger:#e07070; --accent:#e89574;
+      --prompt-bg:#8c4a30; --rule-bg:#a85038;
+    }
+
+    /* ⚡ Grok (monocromo estilo X) */
+    [data-interface="grok"]{
+      --primary:#111111; --success:#16a34a; --warn:#eab308;
+      --danger:#dc2626; --accent:#404040;
+      --prompt-bg:#1a1a1a; --rule-bg:#000000;
+      --brand-font:'Inter','Segoe UI',system-ui,Arial,sans-serif;
+      --prompt-radius:8px; --panel-radius:8px;
+    }
+    [data-theme="dark"][data-interface="grok"]{
+      --primary:#ffffff; --success:#22c55e; --warn:#facc15;
+      --danger:#ef4444; --accent:#737373;
+      --prompt-bg:#000000; --rule-bg:#171717;
+    }
+
+    /* 🐋 DeepSeek (azul-violeta característico) */
+    [data-interface="deepseek"]{
+      --primary:#4d6bfe; --success:#22c55e; --warn:#f59e0b;
+      --danger:#ef4444; --accent:#4d6bfe;
+      --prompt-bg:#4d6bfe; --rule-bg:#3b52d4;
+      --brand-font:'Inter','Segoe UI',system-ui,Arial,sans-serif;
+      --prompt-radius:20px;
+    }
+    [data-theme="dark"][data-interface="deepseek"]{
+      --primary:#6f89ff; --success:#4ade80; --warn:#fbbf24;
+      --danger:#f87171; --accent:#6f89ff;
+      --prompt-bg:#2f3fa8; --rule-bg:#1f2a8a;
+    }
+
+    /* 🎨 Custom — los valores se inyectan vía JS en :root (inline style) */
+
+    /* ============================================================ */
+
+    *{box-sizing:border-box;margin:0;padding:0;font-family:var(--brand-font)}
     html{scroll-behavior:smooth}
 
     body{
       background:var(--bg); color:var(--text);
       padding:20px; max-width:1100px; margin:0 auto;
       display:flex; flex-direction:column; min-height:100vh;
-      transition:background .3s ease, color .3s ease;
+      transition:background .3s ease, color .3s ease, font-family .2s ease;
     }
 
-    /* ============ 2. ACCESIBILIDAD ============ */
-    .sr-only{
-      position:absolute;width:1px;height:1px;padding:0;margin:-1px;
-      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
-    }
-    .skip-link{
-      position:absolute;left:-999px;top:8px;z-index:999;
-      background:var(--primary);color:#fff;padding:10px 16px;border-radius:8px;
-    }
+    /* ACCESIBILIDAD */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .skip-link{position:absolute;left:-999px;top:8px;z-index:999;background:var(--primary);color:#fff;padding:10px 16px;border-radius:8px}
     .skip-link:focus{left:8px}
-    :focus-visible{
-      outline:3px solid var(--primary);
-      outline-offset:2px; border-radius:6px;
-    }
+    :focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:6px}
     @media (prefers-reduced-motion: reduce){
       *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important}
     }
 
-    /* ============ 3. HEADER ============ */
-    .top-bar{
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:15px; gap:12px; flex-wrap:wrap;
-    }
+    /* HEADER */
+    .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;gap:12px;flex-wrap:wrap}
     .ai-name-container{display:flex;align-items:center;gap:10px;font-size:20px;flex-wrap:wrap}
     .ai-name-input{
-      border:3px solid var(--rule-bg); background:var(--bg); color:var(--text);
-      padding:6px 12px; font-size:20px; outline:none; width:260px; border-radius:6px;
+      border:3px solid var(--rule-bg);background:var(--bg);color:var(--text);
+      padding:6px 12px;font-size:20px;outline:none;width:260px;border-radius:6px;
       transition:border-color .2s, box-shadow .2s;
     }
     .ai-name-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(0,168,255,.18)}
 
-    .header-actions{display:flex;gap:8px;align-items:center}
+    .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .icon-btn{
-      background:var(--card); border:1px solid var(--border); color:var(--text);
+      background:var(--card);border:1px solid var(--border);color:var(--text);
       width:42px;height:42px;border-radius:10px;cursor:pointer;
-      font-size:18px; display:grid;place-items:center;
+      font-size:18px;display:grid;place-items:center;
       transition:transform .15s, background .2s;
     }
     .icon-btn:hover{transform:translateY(-2px);background:var(--border)}
@@ -86,19 +153,62 @@
     .brand-logo svg{width:42px;height:42px;stroke:#70c5e8;animation:spinSoft 9s linear infinite}
     @keyframes spinSoft{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
-    /* ============ 4. BARRA DE ESTADÍSTICAS ============ */
-    .stats-bar{
-      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
-    }
+    /* STATS BAR */
+    .stats-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
     .stat-chip{
-      background:var(--card); border:1px solid var(--border);
+      background:var(--card);border:1px solid var(--border);
       padding:6px 14px;border-radius:999px;font-size:14px;font-weight:bold;
       display:flex;align-items:center;gap:6px;transition:transform .2s;
     }
     .stat-chip.pop{animation:pop .35s ease}
     @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
 
-    /* ============ 5. SELECTOR DE MODO Y DIFICULTAD ============ */
+    /* ============ BARRA DE INTERFACES IA ============ */
+    .interface-bar{
+      display:flex;align-items:center;gap:8px;margin-bottom:16px;
+      padding:10px 4px;overflow-x:auto;scrollbar-width:thin;
+      border-bottom:1px dashed var(--border);
+    }
+    .interface-bar::-webkit-scrollbar{height:6px}
+    .interface-bar::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+    .interface-label{font-size:13px;font-weight:bold;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+    .iface-chip{
+      background:var(--card);border:1.5px solid var(--border);color:var(--text);
+      padding:7px 14px;border-radius:999px;font-size:13px;cursor:pointer;
+      white-space:nowrap;transition:.2s;font-weight:600;
+      display:inline-flex;align-items:center;gap:5px;
+    }
+    .iface-chip:hover{transform:translateY(-2px);border-color:var(--primary);box-shadow:var(--shadow)}
+    .iface-chip.active{
+      background:var(--primary);color:#fff;border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(0,168,255,.18);
+    }
+    .iface-chip.active:hover{color:#fff}
+
+    /* Panel Custom */
+    .custom-panel{
+      background:var(--card);border:1.5px dashed var(--primary);border-radius:var(--radius);
+      padding:14px;margin-bottom:16px;
+      display:none;gap:14px;flex-wrap:wrap;align-items:center;
+      animation:fadeSlide .25s ease;
+    }
+    .custom-panel.active{display:flex}
+    .custom-panel label{
+      display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text);
+    }
+    .custom-panel input[type="color"]{
+      width:42px;height:34px;border:1px solid var(--border);border-radius:6px;
+      cursor:pointer;background:transparent;padding:0;
+    }
+    .custom-panel button{
+      background:var(--primary);color:#fff;border:none;padding:7px 14px;
+      font-size:13px;font-weight:bold;border-radius:6px;cursor:pointer;
+      transition:transform .15s, filter .2s;
+    }
+    .custom-panel button:hover{transform:translateY(-1px);filter:brightness(1.1)}
+    .custom-panel button.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+
+    /* MODOS */
     .modes-container{display:flex;align-items:center;gap:30px;margin-bottom:18px;flex-wrap:wrap}
     .mode-item{
       display:flex;align-items:center;gap:8px;cursor:pointer;font-size:18px;
@@ -119,7 +229,7 @@
       padding:8px 12px;border-radius:10px;font-size:15px;cursor:pointer;
     }
 
-    /* ============ 6. ÁREA DE JUEGO ============ */
+    /* JUEGO */
     .game-area{display:flex;flex-direction:column;gap:18px;flex:1}
     .top-section{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
     .left-controls{display:flex;flex-direction:column;gap:16px;margin-top:20px;flex:1;min-width:280px}
@@ -134,13 +244,8 @@
     .seconds-pill.danger{background:var(--danger);animation:pulseWarn .5s infinite}
     @keyframes pulseWarn{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 
-    .time-bar{
-      height:8px;background:var(--border);border-radius:99px;overflow:hidden;width:100%;max-width:340px;
-    }
-    .time-bar-fill{
-      height:100%;width:100%;background:var(--accent);
-      transition:width 1s linear, background .3s;
-    }
+    .time-bar{height:8px;background:var(--border);border-radius:99px;overflow:hidden;width:100%;max-width:340px}
+    .time-bar-fill{height:100%;width:100%;background:var(--accent);transition:width 1s linear, background .3s}
     .time-bar-fill.warning{background:var(--warn)}
     .time-bar-fill.danger{background:var(--danger)}
 
@@ -159,47 +264,45 @@
     .btn-skip{background:#607d8b}
     .btn-pause{background:#455a64}
 
-    /* ============ 7. PANEL DE PROMPT Y REGLA ============ */
+    /* PROMPT + REGLA */
     .right-info{display:flex;flex-direction:column;align-items:flex-end;gap:14px;width:450px;max-width:100%}
     .prompt-box{
-      background:var(--prompt-bg);width:100%;min-height:140px;border-radius:28px;
+      background:var(--prompt-bg);width:100%;min-height:140px;border-radius:var(--prompt-radius);
       padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;
       color:#fff;text-align:center;font-size:18px;box-shadow:var(--shadow);
       position:relative;overflow:hidden;
+      transition:background .3s, border-radius .3s;
     }
     .prompt-box::after{
-      content:'';position:absolute;inset:0;border-radius:28px;
+      content:'';position:absolute;inset:0;border-radius:var(--prompt-radius);
       box-shadow:inset 0 0 0 2px rgba(255,255,255,.15);pointer-events:none;
     }
     .prompt-line{width:80%;height:5px;background:rgba(0,0,0,.65);border-radius:3px;margin-top:12px}
-    .cursor-blink{display:inline-block;width:8px;background:#fff;animation:blink .9s steps(2) infinite;margin-left:2px}
-    @keyframes blink{50%{opacity:0}}
 
     .rule-container{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:bold;width:100%;justify-content:flex-end}
     .rule-pill{
       background:var(--rule-bg);color:#fff;padding:10px 18px;border-radius:18px;
       font-size:15px;font-weight:normal;flex:1;text-align:center;word-break:break-word;
-      transition:transform .2s;
+      transition:transform .2s, background .3s;
     }
     .rule-pill.flash{animation:pop .4s ease}
 
-    /* ============ 8. PANELES PLEGABLES ============ */
+    /* PANELES */
     .panel-box{
-      background:var(--card);border:2px dashed var(--accent);border-radius:var(--radius);
+      background:var(--card);border:2px dashed var(--accent);border-radius:var(--panel-radius);
       padding:12px;display:none;animation:fadeSlide .25s ease;
     }
     .panel-box.active{display:block}
     @keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
-    /* ============ 9. BARRA DE PROGRESO DE MENSAJES ============ */
     .limit-bar{height:10px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:8px}
     .limit-bar-fill{height:100%;background:var(--success);width:100%;transition:width .35s ease, background .3s}
     .limit-bar-fill.warn{background:var(--warn)}
     .limit-bar-fill.danger{background:var(--danger)}
 
-    /* ============ 10. CAJA INFERIOR ============ */
+    /* CAJA INFERIOR */
     .bottom-box{
-      background:var(--gray-box);border:3px solid var(--gray-box-border);border-radius:8px;
+      background:var(--gray-box);border:3px solid var(--gray-box-border);border-radius:var(--panel-radius);
       padding:16px;display:flex;flex-direction:column;gap:10px;margin-top:6px;
       transition:background .3s, border-color .3s;
     }
@@ -214,6 +317,7 @@
       width:100%;min-height:80px;padding:10px;font-size:16px;
       border:1px solid var(--border);border-radius:8px;outline:none;resize:vertical;
       background:var(--bg);color:var(--text);transition:border-color .2s, box-shadow .2s;
+      font-family:inherit;
     }
     .response-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,168,255,.18)}
     .response-input.invalid{border-color:var(--danger)}
@@ -236,14 +340,14 @@
     [data-theme="dark"] .live-feedback.ok{color:#4ade80}
     [data-theme="dark"] .live-feedback.bad{color:#f87171}
 
-    /* ============ 11. FORMULARIO 2 JUGADORES ============ */
+    /* FORM 2P */
     .p1-form{
       display:flex;flex-direction:column;gap:8px;margin-bottom:8px;
       background:var(--card);padding:12px;border-radius:var(--radius);border:1px solid var(--border);
     }
     .p1-form strong{font-size:14px;letter-spacing:.3px}
 
-    /* ============ 12. MODALES ============ */
+    /* MODALES */
     .modal-overlay{
       position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
       justify-content:center;align-items:center;z-index:100;padding:16px;
@@ -272,20 +376,14 @@
     .btn-secondary{background:var(--accent)}
     .btn-danger{background:var(--danger)}
 
-    /* ============ 13. LOGROS ============ */
+    /* LOGROS */
     .achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
-    .achv{
-      background:var(--card);border:1px solid var(--border);border-radius:10px;
-      padding:10px;font-size:12px;text-align:center;opacity:.45;transition:.2s;
-    }
+    .achv{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:12px;text-align:center;opacity:.45;transition:.2s}
     .achv.unlocked{opacity:1;border-color:var(--success);box-shadow:0 0 0 2px rgba(0,200,83,.25)}
     .achv .emoji{font-size:24px;display:block;margin-bottom:4px}
 
-    /* ============ 14. TOASTS ============ */
-    .toast-container{
-      position:fixed;top:16px;right:16px;z-index:200;display:flex;
-      flex-direction:column;gap:8px;pointer-events:none;
-    }
+    /* TOASTS */
+    .toast-container{position:fixed;top:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
     .toast{
       background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;
       box-shadow:var(--shadow);animation:toastIn .3s ease;max-width:300px;
@@ -296,12 +394,9 @@
     .toast.warn{border-color:var(--warn)}
     @keyframes toastIn{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
 
-    /* ============ 15. CONFETI ============ */
-    #confettiCanvas{
-      position:fixed;inset:0;pointer-events:none;z-index:150;display:none;
-    }
+    #confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:150;display:none}
 
-    /* ============ 16. RESPONSIVE ============ */
+    /* RESPONSIVE */
     @media (max-width: 860px){
       .top-section{flex-direction:column-reverse}
       .right-info{width:100%;align-items:stretch}
@@ -319,10 +414,8 @@
       .ai-name-container{font-size:16px;width:100%}
       .btn-pill{font-size:14px;padding:10px 14px}
     }
-
-    /* ============ 17. ESTILOS DE IMPRESIÓN ============ */
     @media print{
-      .header-actions,.action-buttons,.btn-send,.modes-container{display:none}
+      .header-actions,.action-buttons,.btn-send,.modes-container,.interface-bar,.custom-panel{display:none}
       body{background:#fff;color:#000}
     }
   </style>
@@ -331,7 +424,7 @@
 
   <a href="#mainGame" class="skip-link">Saltar al juego</a>
 
-  <!-- ============ HEADER ============ -->
+  <!-- HEADER -->
   <header class="top-bar">
     <div class="ai-name-container">
       <label for="aiNameInput">Nombre de la IA:</label>
@@ -356,7 +449,7 @@
     </div>
   </header>
 
-  <!-- ============ BARRA DE ESTADÍSTICAS ============ -->
+  <!-- STATS -->
   <div class="stats-bar" role="status" aria-live="polite">
     <div class="stat-chip">⭐ Nivel <span id="levelDisplay">1</span></div>
     <div class="stat-chip">🔥 Racha <span id="streakDisplay">0</span></div>
@@ -365,11 +458,35 @@
     <div class="stat-chip">❌ Fallos <span id="missDisplay">0</span></div>
   </div>
 
-  <!-- ============ MODOS + DIFICULTAD ============ -->
+  <!-- ============ SELECTOR DE INTERFAZ IA ============ -->
+  <div class="interface-bar" role="tablist" aria-label="Estilo visual de interfaz">
+    <span class="interface-label">Interfaz:</span>
+    <button class="iface-chip active" data-iface="default" role="tab" aria-selected="true"  onclick="setInterface('default')">🎛️ Clásica</button>
+    <button class="iface-chip"        data-iface="chatgpt" role="tab" aria-selected="false" onclick="setInterface('chatgpt')">💬 ChatGPT</button>
+    <button class="iface-chip"        data-iface="gemini"  role="tab" aria-selected="false" onclick="setInterface('gemini')">✨ Gemini</button>
+    <button class="iface-chip"        data-iface="claude"  role="tab" aria-selected="false" onclick="setInterface('claude')">🎨 Claude</button>
+    <button class="iface-chip"        data-iface="grok"    role="tab" aria-selected="false" onclick="setInterface('grok')">⚡ Grok</button>
+    <button class="iface-chip"        data-iface="deepseek" role="tab" aria-selected="false" onclick="setInterface('deepseek')">🐋 DeepSeek</button>
+    <button class="iface-chip"        data-iface="custom"  role="tab" aria-selected="false" onclick="setInterface('custom')">🎨 Customizado…</button>
+  </div>
+
+  <!-- ============ PANEL CUSTOM ============ -->
+  <div class="custom-panel" id="customPanel">
+    <label>🎨 Primario <input type="color" id="customPrimary" value="#00a8ff"></label>
+    <label>🌈 Acento <input type="color" id="customAccent" value="#6c93be"></label>
+    <label>📦 Prompt <input type="color" id="customPrompt" value="#ba7958"></label>
+    <label>📏 Regla <input type="color" id="customRule" value="#800000"></label>
+    <label>🖼️ Fondo <input type="color" id="customBg" value="#ffffff"></label>
+    <label>✍️ Texto <input type="color" id="customText" value="#0b0f14"></label>
+    <button onclick="applyCustomInterface()">Aplicar</button>
+    <button class="ghost" onclick="resetCustomInterface()">Restablecer</button>
+  </div>
+
+  <!-- MODOS -->
   <div class="modes-container" role="tablist" aria-label="Modo de juego">
     <div class="mode-item active" id="modeSoloBtn" role="tab" tabindex="0"
          aria-selected="true" onclick="setMode('solo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setMode('solo')}">
-      <svg viewBox="0 0 24 24" fill="#00a8ff" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
       </svg>
       <span>Solo</span>
@@ -381,7 +498,7 @@
         <svg viewBox="0 0 24 24" fill="#3f51b5" style="margin-right:-15px;">
           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
         </svg>
-        <svg viewBox="0 0 24 24" fill="#00a8ff">
+        <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
         </svg>
       </div>
@@ -397,12 +514,12 @@
     </select>
   </div>
 
-  <!-- ============ ÁREA DE JUEGO ============ -->
+  <!-- JUEGO -->
   <main class="game-area" id="mainGame">
     <div class="top-section">
       <div class="left-controls">
         <div class="seconds-container">
-          <span id="secondsLabel">SEGUNDOS:</span>
+          <span>SEGUNDOS:</span>
           <div class="seconds-pill" id="secondsDisplay" aria-live="polite">20s</div>
         </div>
         <div class="time-bar" aria-hidden="true"><div class="time-bar-fill" id="timeBarFill"></div></div>
@@ -429,7 +546,6 @@
       </div>
     </div>
 
-    <!-- PANELES PLEGABLES -->
     <div class="panel-box" id="thoughtPanel">
       <strong>🧠 Pensamiento Interno de la IA (Scratchpad):</strong>
       <textarea id="thoughtInput" class="response-input" style="margin-top:8px;"
@@ -443,17 +559,15 @@
       <div class="limit-bar"><div class="limit-bar-fill" id="limitBarFill"></div></div>
     </div>
 
-    <!-- FORMULARIO JUGADOR 1 -->
     <div class="p1-form" id="p1Form" style="display:none">
       <strong>Jugador 1 (Humano): Define el reto</strong>
       <input type="text" id="p1Prompt" placeholder="Escribe la pregunta o prompt para la IA"
              class="response-input" style="min-height:40px" maxlength="160" autocomplete="off">
       <input type="text" id="p1Rule" placeholder="Escribe la regla (Ej: 'Sin usar la letra E')"
              class="response-input" style="min-height:40px" maxlength="160" autocomplete="off">
-      <button class="btn-send" onclick="send2PPrompt()" style="background:#3f51b5;align-self:flex-end">📤 Enviar reto a la IA</button>
+      <button class="btn-send" onclick="send2PPrompt()" style="background:var(--accent);align-self:flex-end">📤 Enviar reto a la IA</button>
     </div>
 
-    <!-- CAJA INFERIOR -->
     <div class="bottom-box" id="bottomBox">
       <label id="responseLabel" for="aiResponseInput">Respuesta de la IA (<span id="aiNameDisplay">ControlBot</span>):</label>
       <textarea id="aiResponseInput" class="response-input"
@@ -480,10 +594,10 @@
   </main>
 
   <footer style="text-align:center;color:var(--muted);font-size:12px;margin-top:18px">
-    ControlAI · v2.0 · Ctrl+Enter responder · T pensamiento · L límite · H pista · P pausa · Esc cerrar
+    ControlAI · v2.1 · Ctrl+Enter responder · T pensamiento · L límite · H pista · P pausa · Esc cerrar
   </footer>
 
-  <!-- ============ MODAL GAME OVER ============ -->
+  <!-- MODALES -->
   <div class="modal-overlay" id="gameOverModal" role="dialog" aria-modal="true" aria-labelledby="goTitle">
     <div class="modal-content">
       <h2 id="goTitle">¡TE EQUIVOCASTE!</h2>
@@ -496,7 +610,6 @@
     </div>
   </div>
 
-  <!-- ============ MODAL AJUSTES ============ -->
   <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
     <div class="modal-content" style="border-color:var(--primary)">
       <h2 id="setTitle" style="color:var(--primary)">⚙️ Ajustes</h2>
@@ -521,7 +634,6 @@
     </div>
   </div>
 
-  <!-- ============ MODAL LOGROS ============ -->
   <div class="modal-overlay" id="achievementsModal" role="dialog" aria-modal="true" aria-labelledby="achTitle">
     <div class="modal-content" style="border-color:var(--success)">
       <h2 id="achTitle" style="color:var(--success)">🏆 Logros</h2>
@@ -532,7 +644,6 @@
     </div>
   </div>
 
-  <!-- ============ MODAL ESTADÍSTICAS ============ -->
   <div class="modal-overlay" id="statsModal" role="dialog" aria-modal="true" aria-labelledby="statTitle">
     <div class="modal-content" style="border-color:var(--accent)">
       <h2 id="statTitle" style="color:var(--accent)">📊 Estadísticas</h2>
@@ -548,175 +659,120 @@
 
 <script>
 /* =====================================================================
-   CONTROL AI · v2.0
+   CONTROL AI · v2.1 — Interfaces IA + Custom
    ===================================================================== */
 
-/* ---------- 18. ESTADO GLOBAL ---------- */
+/* ESTADO GLOBAL */
 const State = {
-  mode:'solo',
-  difficulty:'normal',
-  aiName:'ControlBot',
-  showThought:false,
-  showLimit:false,
-  sound:true,
-  theme:'light',
-  timeLeft:20,
-  timeMax:20,
-  timer:null,
-  paused:false,
-  score:0,
-  streak:0,
-  bestStreak:0,
-  level:1,
-  correctInLevel:0,
-  messagesLeft:10,
-  currentChallenge:null,
-  hintsUsed:0,
-  skipsUsed:0,
-  totalCorrect:0,
-  totalWrong:0,
-  usedHintThisRound:false,
-  achievements:[],
-  gameActive:false
+  mode:'solo', difficulty:'normal', aiName:'ControlBot',
+  showThought:false, showLimit:false, sound:true, theme:'light',
+  interface:'default',
+  customColors:null,
+  timeLeft:20, timeMax:20, timer:null, paused:false,
+  score:0, streak:0, bestStreak:0, level:1, correctInLevel:0,
+  messagesLeft:10, currentChallenge:null,
+  hintsUsed:0, skipsUsed:0, totalCorrect:0, totalWrong:0,
+  usedHintThisRound:false, achievements:[], gameActive:false,
+  played2P:false, bestScore:0
 };
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- 19. BANCO AMPLIADO DE RETOS ---------- */
+/* RETOS */
 const CHALLENGES = [
-  /* --- MATEMÁTICAS --- */
-  {cat:'math', diff:1, prompt:"Calcula: 25 × 4 − 10",
-   rule:"Responde ÚNICAMENTE con el número final.",
-   validate:a=>a.trim()==="90", error:"El resultado exacto debía ser 90.",
-   hint:"Primero multiplica, después resta.", live:null},
-  {cat:'math', diff:1, prompt:"¿Cuánto es 7 × 8?",
-   rule:"Responde solo con el número, sin palabras.",
-   validate:a=>a.trim()==="56", error:"7 × 8 = 56.",
-   hint:"Es un número par de dos cifras.", live:null},
-  {cat:'math', diff:2, prompt:"Calcula la raíz cuadrada de 144.",
-   rule:"Responde en números romanos.",
-   validate:a=>a.trim().toUpperCase()==="XII", error:"√144 = 12 → XII en números romanos.",
-   hint:"Doce en números romanos.", live:null},
-  {cat:'math', diff:2, prompt:"Suma todos los números del 1 al 10.",
-   rule:"Responde con el número seguido de un punto.",
-   validate:a=>a.trim()==="55.", error:"La suma es 55 → '55.'",
-   hint:"Fórmula: n(n+1)/2.", live:a=>({ok:a.trim()===""||/^\d+\.$/.test(a.trim()), msg:a.trim()&&!/^\d+\.$/.test(a.trim())?"Falta el punto final":""})},
-
-  /* --- LENGUAJE --- */
-  {cat:'lang', diff:1, prompt:"Escribe una oración sobre la inteligencia artificial.",
-   rule:"PROHIBIDO usar la letra 'A'.",
-   validate:a=>!a.toLowerCase().includes('a') && a.trim().length>5,
-   error:"Usaste la letra 'A' en tu respuesta.",
-   hint:"Usa sinónimos como 'mente' o 'sistema'.",
-   live:a=>({ok:!a.toLowerCase().includes('a'), msg:a.toLowerCase().includes('a')?"⚠️ Contiene la letra 'A'":""})},
-  {cat:'lang', diff:1, prompt:"Menciona un color primario.",
-   rule:"Escribe toda la respuesta en MAYÚSCULAS.",
-   validate:a=>a.trim().length>0 && a===a.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(a),
-   error:"La respuesta debe estar completamente en MAYÚSCULAS.",
-   hint:"Rojo, azul o amarillo.",
-   live:a=>({ok:a===""||a===a.toUpperCase(), msg:a&&a!==a.toUpperCase()?"⚠️ Debe estar en MAYÚSCULAS":""})},
-  {cat:'lang', diff:2, prompt:"Escribe la palabra 'SISTEMA' al revés.",
-   rule:"Debe ser exactamente la palabra invertida, en mayúsculas.",
-   validate:a=>a.trim().toUpperCase()==="AMETSIS",
-   error:"La palabra invertida es AMETSIS.",
-   hint:"Empieza por A y termina en S.", live:null},
-  {cat:'lang', diff:2, prompt:"Di un sinónimo de 'rápido'.",
-   rule:"Debe tener exactamente 6 letras.",
+  {cat:'math', diff:1, prompt:"Calcula: 25 × 4 − 10", rule:"Responde ÚNICAMENTE con el número final.",
+   validate:a=>a.trim()==="90", error:"El resultado exacto debía ser 90.", hint:"Primero multiplica, después resta.", live:null},
+  {cat:'math', diff:1, prompt:"¿Cuánto es 7 × 8?", rule:"Responde solo con el número, sin palabras.",
+   validate:a=>a.trim()==="56", error:"7 × 8 = 56.", hint:"Es un número par de dos cifras.", live:null},
+  {cat:'math', diff:2, prompt:"Calcula la raíz cuadrada de 144.", rule:"Responde en números romanos.",
+   validate:a=>a.trim().toUpperCase()==="XII", error:"√144 = 12 → XII en números romanos.", hint:"Doce en números romanos.", live:null},
+  {cat:'math', diff:2, prompt:"Suma todos los números del 1 al 10.", rule:"Responde con el número seguido de un punto.",
+   validate:a=>a.trim()==="55.", error:"La suma es 55 → '55.'", hint:"Fórmula: n(n+1)/2.", live:a=>({ok:a.trim()===""||/^\d+\.$/.test(a.trim()), msg:a.trim()&&!/^\d+\.$/.test(a.trim())?"Falta el punto final":""})},
+  {cat:'lang', diff:1, prompt:"Escribe una oración sobre la inteligencia artificial.", rule:"PROHIBIDO usar la letra 'A'.",
+   validate:a=>!a.toLowerCase().includes('a') && a.trim().length>5, error:"Usaste la letra 'A' en tu respuesta.",
+   hint:"Usa sinónimos como 'mente' o 'sistema'.", live:a=>({ok:!a.toLowerCase().includes('a'), msg:a.toLowerCase().includes('a')?"⚠️ Contiene la letra 'A'":""})},
+  {cat:'lang', diff:1, prompt:"Menciona un color primario.", rule:"Escribe toda la respuesta en MAYÚSCULAS.",
+   validate:a=>a.trim().length>0 && a===a.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(a), error:"La respuesta debe estar completamente en MAYÚSCULAS.",
+   hint:"Rojo, azul o amarillo.", live:a=>({ok:a===""||a===a.toUpperCase(), msg:a&&a!==a.toUpperCase()?"⚠️ Debe estar en MAYÚSCULAS":""})},
+  {cat:'lang', diff:2, prompt:"Escribe la palabra 'SISTEMA' al revés.", rule:"Debe ser exactamente la palabra invertida, en mayúsculas.",
+   validate:a=>a.trim().toUpperCase()==="AMETSIS", error:"La palabra invertida es AMETSIS.", hint:"Empieza por A y termina en S.", live:null},
+  {cat:'lang', diff:2, prompt:"Di un sinónimo de 'rápido'.", rule:"Debe tener exactamente 6 letras.",
    validate:a=>["veloz ","ligero"].includes(a.trim().toLowerCase())||(a.trim().length===6&&a.trim().toLowerCase()!=="rápido"),
-   error:"Necesitabas un sinónimo de 6 letras (p. ej. 'veloz ').",
-   hint:"Piensa en 'veloz'.", live:a=>({ok:a.trim().length===6||a.trim()==="", msg:a.trim()&&a.trim().length!==6?`Tiene ${a.trim().length} letras, necesitas 6`:""})},
-
-  /* --- LÓGICA --- */
-  {cat:'logic', diff:1, prompt:"¿Cuál es la capital de España?",
-   rule:"Responde en exactamente UNA palabra.",
-   validate:a=>a.trim().toLowerCase()==="madrid",
-   error:"Debías responder solo 'Madrid'.",
-   hint:"Es una ciudad del centro de la península.",
-   live:a=>({ok:!a.trim().includes(' '), msg:a.trim().includes(' ')?'⚠️ Solo una palabra':''})},
-  {cat:'logic', diff:2, prompt:"Si todos los A son B y todos los B son C, ¿qué se deduce?",
-   rule:"Responde empezando por 'Todos los'.",
-   validate:a=>a.trim().toLowerCase().startsWith("todos los"),
-   error:"Debías empezar con 'Todos los'.",
-   hint:"Empieza literalmente por 'Todos los'.", live:null},
-  {cat:'logic', diff:3, prompt:"Tengo 3 manzanas, doy 1 y me como otra. ¿Cuántas quedan?",
-   rule:"Responde con número + palabra, todo en minúsculas.",
-   validate:a=>/^1\s*manzana$/.test(a.trim().toLowerCase()),
-   error:"Queda 1 manzana → '1 manzana'.",
-   hint:"3 − 1 − 1 = 1.", live:null},
-
-  /* --- MEMORIA / TRANSFORMACIÓN --- */
-  {cat:'memory', diff:2, prompt:"Convierte la palabra 'CONTROL' a minúsculas.",
-   rule:"Añade un signo de exclamación al final.",
-   validate:a=>a.trim()==="control!", error:"Debía ser exactamente 'control!'.",
-   hint:"Todo minúsculas y un '!' al final.", live:null},
-  {cat:'memory', diff:2, prompt:"Escribe los números del 1 al 5 separados por guiones.",
-   rule:"Sin espacios.",
-   validate:a=>a.trim()==="1-2-3-4-5", error:"Debía ser '1-2-3-4-5'.",
-   hint:"Patrón: número-guion-número.", live:a=>({ok:!a.includes(' '), msg:a.includes(' ')?'⚠️ Sin espacios':''})},
-
-  /* --- CREATIVIDAD --- */
-  {cat:'creative', diff:3, prompt:"Inventa un nombre para un robot explorador.",
-   rule:"Debe terminar en '-tron' y tener más de 8 letras.",
-   validate:a=>/tron$/i.test(a.trim()) && a.trim().length>8,
-   error:"Debía terminar en '-tron' y tener más de 8 caracteres.",
-   hint:"Ejemplo: 'Exploratron'.", live:a=>({ok:a===''||(/tron$/i.test(a.trim())&&a.trim().length>8), msg:a&&!/tron$/i.test(a.trim())?"⚠️ Debe terminar en '-tron'":(a&&a.trim().length<=8?"⚠️ Muy corto":'')})},
-  {cat:'creative', diff:2, prompt:"Escribe un eslogan para una IA.",
-   rule:"Máximo 4 palabras.",
-   validate:a=>a.trim().split(/\s+/).length<=4 && a.trim().length>3,
-   error:"Usaste más de 4 palabras.", hint:"Sé breve y directo.",
+   error:"Necesitabas un sinónimo de 6 letras (p. ej. 'veloz ').", hint:"Piensa en 'veloz'.",
+   live:a=>({ok:a.trim().length===6||a.trim()==="", msg:a.trim()&&a.trim().length!==6?`Tiene ${a.trim().length} letras, necesitas 6`:""})},
+  {cat:'logic', diff:1, prompt:"¿Cuál es la capital de España?", rule:"Responde en exactamente UNA palabra.",
+   validate:a=>a.trim().toLowerCase()==="madrid", error:"Debías responder solo 'Madrid'.",
+   hint:"Es una ciudad del centro de la península.", live:a=>({ok:!a.trim().includes(' '), msg:a.trim().includes(' ')?'⚠️ Solo una palabra':''})},
+  {cat:'logic', diff:2, prompt:"Si todos los A son B y todos los B son C, ¿qué se deduce?", rule:"Responde empezando por 'Todos los'.",
+   validate:a=>a.trim().toLowerCase().startsWith("todos los"), error:"Debías empezar con 'Todos los'.", hint:"Empieza literalmente por 'Todos los'.", live:null},
+  {cat:'logic', diff:3, prompt:"Tengo 3 manzanas, doy 1 y me como otra. ¿Cuántas quedan?", rule:"Responde con número + palabra, todo en minúsculas.",
+   validate:a=>/^1\s*manzana$/.test(a.trim().toLowerCase()), error:"Queda 1 manzana → '1 manzana'.", hint:"3 − 1 − 1 = 1.", live:null},
+  {cat:'memory', diff:2, prompt:"Convierte la palabra 'CONTROL' a minúsculas.", rule:"Añade un signo de exclamación al final.",
+   validate:a=>a.trim()==="control!", error:"Debía ser exactamente 'control!'.", hint:"Todo minúsculas y un '!' al final.", live:null},
+  {cat:'memory', diff:2, prompt:"Escribe los números del 1 al 5 separados por guiones.", rule:"Sin espacios.",
+   validate:a=>a.trim()==="1-2-3-4-5", error:"Debía ser '1-2-3-4-5'.", hint:"Patrón: número-guion-número.", live:a=>({ok:!a.includes(' '), msg:a.includes(' ')?'⚠️ Sin espacios':''})},
+  {cat:'creative', diff:3, prompt:"Inventa un nombre para un robot explorador.", rule:"Debe terminar en '-tron' y tener más de 8 letras.",
+   validate:a=>/tron$/i.test(a.trim()) && a.trim().length>8, error:"Debía terminar en '-tron' y tener más de 8 caracteres.",
+   hint:"Ejemplo: 'Exploratron'.",
+   live:a=>({ok:a===''||(/tron$/i.test(a.trim())&&a.trim().length>8), msg:a&&!/tron$/i.test(a.trim())?"⚠️ Debe terminar en '-tron'":(a&&a.trim().length<=8?"⚠️ Muy corto":'')})},
+  {cat:'creative', diff:2, prompt:"Escribe un eslogan para una IA.", rule:"Máximo 4 palabras.",
+   validate:a=>a.trim().split(/\s+/).length<=4 && a.trim().length>3, error:"Usaste más de 4 palabras.", hint:"Sé breve y directo.",
    live:a=>({ok:a.trim()===''||a.trim().split(/\s+/).length<=4, msg:a.trim().split(/\s+/).length>4?"⚠️ Máximo 4 palabras":""})}
 ];
 
-/* ---------- 20. LOGROS ---------- */
+/* LOGROS */
 const ACHIEVEMENTS = [
-  {id:'first',  emoji:'🎉', name:'Primer acierto',   test:s=>s.totalCorrect>=1},
-  {id:'streak5',emoji:'🔥', name:'Racha de 5',       test:s=>s.bestStreak>=5},
-  {id:'streak10',emoji:'⚡',name:'Racha de 10',      test:s=>s.bestStreak>=10},
-  {id:'score50',emoji:'🥉', name:'50 puntos',        test:s=>s.score>=50},
-  {id:'score100',emoji:'🥈',name:'100 puntos',       test:s=>s.score>=100},
-  {id:'score250',emoji:'🥇',name:'250 puntos',       test:s=>s.score>=250},
-  {id:'hint',   emoji:'💡', name:'Usar una pista',   test:s=>s.hintsUsed>=1},
-  {id:'twop',   emoji:'👥', name:'Modo 2 jugadores', test:s=>s.played2P},
-  {id:'perfect',emoji:'💎', name:'10 sin fallar',    test:s=>s.bestStreak>=10 && s.totalWrong===0}
+  {id:'first',   emoji:'🎉', name:'Primer acierto',     test:s=>s.totalCorrect>=1},
+  {id:'streak5', emoji:'🔥', name:'Racha de 5',         test:s=>s.bestStreak>=5},
+  {id:'streak10',emoji:'⚡', name:'Racha de 10',        test:s=>s.bestStreak>=10},
+  {id:'score50', emoji:'🥉', name:'50 puntos',          test:s=>s.score>=50},
+  {id:'score100',emoji:'🥈', name:'100 puntos',         test:s=>s.score>=100},
+  {id:'score250',emoji:'🥇', name:'250 puntos',         test:s=>s.score>=250},
+  {id:'hint',    emoji:'💡', name:'Usar una pista',     test:s=>s.hintsUsed>=1},
+  {id:'twop',    emoji:'👥', name:'Modo 2 jugadores',   test:s=>s.played2P},
+  {id:'perfect', emoji:'💎', name:'10 sin fallar',      test:s=>s.bestStreak>=10 && s.totalWrong===0},
+  {id:'iface',   emoji:'🎨', name:'Cambia la interfaz', test:s=>s.interfaceChanged}
 ];
 
-/* ---------- 21. PERSISTENCIA ---------- */
-const STORAGE_KEY = 'controlai_v2_stats';
+/* PERSISTENCIA */
+const STORAGE_KEY = 'controlai_v2_1_stats';
 
 function loadStats(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(!raw) return;
     const s = JSON.parse(raw);
-    State.bestStreak   = s.bestStreak   || 0;
-    State.totalCorrect = s.totalCorrect || 0;
-    State.totalWrong   = s.totalWrong   || 0;
-    State.hintsUsed    = s.hintsUsed    || 0;
-    State.skipsUsed    = s.skipsUsed    || 0;
-    State.achievements = s.achievements || [];
-    State.bestScore    = s.bestScore    || 0;
-    State.sound        = s.sound !== undefined ? s.sound : true;
-    State.theme        = s.theme || 'light';
+    Object.assign(State, {
+      bestStreak:   s.bestStreak   || 0,
+      totalCorrect: s.totalCorrect || 0,
+      totalWrong:   s.totalWrong   || 0,
+      hintsUsed:    s.hintsUsed    || 0,
+      skipsUsed:    s.skipsUsed    || 0,
+      achievements: s.achievements || [],
+      bestScore:    s.bestScore    || 0,
+      sound:        s.sound !== undefined ? s.sound : true,
+      theme:        s.theme        || 'light',
+      interface:    s.interface    || 'default',
+      customColors: s.customColors || null,
+      interfaceChanged: s.interfaceChanged || false
+    });
   }catch(e){ console.warn('No se pudo cargar el progreso', e); }
 }
 
 function saveStats(){
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      bestStreak: State.bestStreak,
-      bestScore: State.bestScore || 0,
-      totalCorrect: State.totalCorrect,
-      totalWrong: State.totalWrong,
-      hintsUsed: State.hintsUsed,
-      skipsUsed: State.skipsUsed,
-      achievements: State.achievements,
-      sound: State.sound,
-      theme: State.theme
+      bestStreak: State.bestStreak, bestScore: State.bestScore || 0,
+      totalCorrect: State.totalCorrect, totalWrong: State.totalWrong,
+      hintsUsed: State.hintsUsed, skipsUsed: State.skipsUsed,
+      achievements: State.achievements, sound: State.sound, theme: State.theme,
+      interface: State.interface, customColors: State.customColors,
+      interfaceChanged: State.interfaceChanged
     }));
   }catch(e){}
 }
 
-/* ---------- 22. AUDIO (Web Audio API) ---------- */
+/* AUDIO */
 let audioCtx = null;
 function beep(freq, dur, type='sine', vol=0.07){
   if(!State.sound) return;
@@ -741,7 +797,7 @@ const SFX = {
   hint(){ beep(1200,.08,'triangle',.06); }
 };
 
-/* ---------- 23. TOASTS ---------- */
+/* TOASTS */
 function showToast(msg, type='info', ms=2600){
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');
@@ -752,7 +808,7 @@ function showToast(msg, type='info', ms=2600){
   setTimeout(()=> t.remove(), ms+320);
 }
 
-/* ---------- 24. CONFETI ---------- */
+/* CONFETI */
 function burstConfetti(){
   if(reducedMotion) return;
   const canvas = document.getElementById('confettiCanvas');
@@ -764,13 +820,10 @@ function burstConfetti(){
     parts.push({
       x: innerWidth/2 + (Math.random()-.5)*220,
       y: innerHeight/2,
-      vx:(Math.random()-.5)*13,
-      vy: Math.random()*-14 - 4,
+      vx:(Math.random()-.5)*13, vy: Math.random()*-14 - 4,
       size: Math.random()*8 + 4,
       color:`hsl(${Math.random()*360},90%,60%)`,
-      rot: Math.random()*Math.PI,
-      vr:(Math.random()-.5)*.3,
-      life:1
+      rot: Math.random()*Math.PI, vr:(Math.random()-.5)*.3, life:1
     });
   }
   let frames = 0;
@@ -793,7 +846,7 @@ function burstConfetti(){
   })();
 }
 
-/* ---------- 25. ELEMENTOS DOM ---------- */
+/* DOM */
 const $ = id => document.getElementById(id);
 const aiNameInput    = $('aiNameInput');
 const aiNameDisplay  = $('aiNameDisplay');
@@ -808,11 +861,13 @@ const limitBarFill   = $('limitBarFill');
 const liveFeedback   = $('liveFeedback');
 const charCount      = $('charCount');
 const bottomBox      = $('bottomBox');
+const customPanel    = $('customPanel');
 
-/* ---------- 26. INICIALIZACIÓN ---------- */
+/* INICIALIZACIÓN */
 window.addEventListener('load', () => {
   loadStats();
   applyTheme(State.theme);
+  applyInterface(State.interface, {silent:true});
   $('setSound').checked = State.sound;
   $('setTheme').checked = State.theme === 'dark';
   updateSoundIcon();
@@ -832,10 +887,114 @@ window.addEventListener('load', () => {
     $('thoughtCount').textContent = e.target.value.length + ' car.';
   });
 
+  /* Listeners de los color pickers custom */
+  ['customPrimary','customAccent','customPrompt','customRule','customBg','customText'].forEach(id=>{
+    $(id).addEventListener('input', applyCustomInterface);
+  });
+
   loadNextSoloChallenge();
 });
 
-/* ---------- 27. CAMBIO DE MODO ---------- */
+/* ============================================================
+   INTERFACES IA
+   ============================================================ */
+const IFACES = ['default','chatgpt','gemini','claude','grok','deepseek','custom'];
+
+function setInterface(name){
+  if(!IFACES.includes(name)) name = 'default';
+  applyInterface(name);
+  SFX.click();
+  if(!State.interfaceChanged){
+    State.interfaceChanged = true;
+    checkAchievements();
+  }
+  saveStats();
+}
+
+function applyInterface(name, opts = {}){
+  State.interface = name;
+  document.documentElement.setAttribute('data-interface', name);
+
+  /* Actualiza chips activos */
+  document.querySelectorAll('.iface-chip').forEach(chip=>{
+    const active = chip.dataset.iface === name;
+    chip.classList.toggle('active', active);
+    chip.setAttribute('aria-selected', active);
+  });
+
+  /* Panel custom visible solo en "custom" */
+  customPanel.classList.toggle('active', name === 'custom');
+
+  /* Limpia overrides inline al salir de custom */
+  if(name !== 'custom') clearCustomOverrides();
+
+  /* Si es custom y hay colores guardados, aplicarlos */
+  if(name === 'custom'){
+    if(State.customColors) restoreCustomInputs(State.customColors);
+    applyCustomInterface({silent:true});
+  }
+
+  if(!opts.silent){
+    const labels = {
+      default:'🎛️ Clásica', chatgpt:'💬 ChatGPT', gemini:'✨ Gemini',
+      claude:'🎨 Claude', grok:'⚡ Grok', deepseek:'🐋 DeepSeek', custom:'🎨 Custom'
+    };
+    showToast('Interfaz: ' + (labels[name]||name), 'info', 1600);
+  }
+}
+
+function clearCustomOverrides(){
+  const root = document.documentElement;
+  ['--primary','--success','--accent','--prompt-bg','--rule-bg',
+   '--bg','--text','--card','--border','--gray-box','--gray-box-border'
+  ].forEach(v => root.style.removeProperty(v));
+}
+
+function applyCustomInterface(opts = {}){
+  const root = document.documentElement;
+  const primary = $('customPrimary').value;
+  const accent  = $('customAccent').value;
+  const prompt  = $('customPrompt').value;
+  const rule    = $('customRule').value;
+  const bg      = $('customBg').value;
+  const text    = $('customText').value;
+
+  root.style.setProperty('--primary', primary);
+  root.style.setProperty('--success', primary);
+  root.style.setProperty('--accent', accent);
+  root.style.setProperty('--prompt-bg', prompt);
+  root.style.setProperty('--rule-bg', rule);
+  root.style.setProperty('--bg', bg);
+  root.style.setProperty('--text', text);
+
+  State.customColors = { primary, accent, prompt, rule, bg, text };
+  saveStats();
+  if(!opts.silent) SFX.click();
+}
+
+function resetCustomInterface(){
+  const defaults = {
+    primary:'#00a8ff', accent:'#6c93be', prompt:'#ba7958',
+    rule:'#800000', bg:'#ffffff', text:'#0b0f14'
+  };
+  restoreCustomInputs(defaults);
+  applyCustomInterface();
+  showToast('🎨 Custom restablecido', 'info', 1600);
+}
+
+function restoreCustomInputs(c){
+  $('customPrimary').value = c.primary;
+  $('customAccent').value  = c.accent;
+  $('customPrompt').value  = c.prompt;
+  $('customRule').value    = c.rule;
+  $('customBg').value      = c.bg;
+  $('customText').value    = c.text;
+}
+
+/* ============================================================
+   RESTO DEL JUEGO
+   ============================================================ */
+
 function setMode(mode){
   SFX.click();
   State.mode = mode;
@@ -847,7 +1006,6 @@ function setMode(mode){
   restartGame();
 }
 
-/* ---------- 28. DIFICULTAD ---------- */
 function setDifficulty(level){
   State.difficulty = level;
   State.timeMax = level === 'easy' ? 30 : level === 'hard' ? 12 : 20;
@@ -856,7 +1014,6 @@ function setDifficulty(level){
   restartGame();
 }
 
-/* ---------- 29. PANELES ---------- */
 function toggleThought(){
   State.showThought = !State.showThought;
   $('thoughtPanel').classList.toggle('active', State.showThought);
@@ -870,7 +1027,6 @@ function toggleLimit(){
   SFX.click();
 }
 
-/* ---------- 30. TEMA ---------- */
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   State.theme = theme;
@@ -882,7 +1038,6 @@ function toggleTheme(){
   saveStats();
 }
 
-/* ---------- 31. SONIDO ---------- */
 function toggleSound(){
   State.sound = !State.sound;
   $('setSound').checked = State.sound;
@@ -892,7 +1047,6 @@ function toggleSound(){
 }
 function updateSoundIcon(){ $('btnSound').textContent = State.sound ? '🔊' : '🔇'; }
 
-/* ---------- 32. TEMPORIZADOR ---------- */
 function startTimer(){
   clearInterval(State.timer);
   State.paused = false;
@@ -928,7 +1082,6 @@ function togglePause(){
   SFX.click();
 }
 
-/* ---------- 33. TYPING EFFECT ---------- */
 function typeText(el, text, speed = 18){
   if(reducedMotion){ el.textContent = text; return; }
   el.textContent = '';
@@ -940,7 +1093,6 @@ function typeText(el, text, speed = 18){
   }, speed);
 }
 
-/* ---------- 34. CARGA DE RETO SOLITARIO ---------- */
 function loadNextSoloChallenge(){
   if(State.messagesLeft <= 0){
     gameOver('📭 Has alcanzado el límite máximo de mensajes.');
@@ -955,7 +1107,6 @@ function loadNextSoloChallenge(){
   });
   if(!pool.length) pool = CHALLENGES;
 
-  /* Evita repetir el mismo reto dos veces seguidas */
   let next;
   do { next = pool[Math.floor(Math.random()*pool.length)]; }
   while(pool.length > 1 && next === State.currentChallenge);
@@ -978,7 +1129,6 @@ function loadNextSoloChallenge(){
   startTimer();
 }
 
-/* ---------- 35. VALIDACIÓN EN VIVO ---------- */
 function onResponseInput(){
   const v = aiResponseInput.value;
   charCount.textContent = v.length + ' caracteres';
@@ -996,7 +1146,6 @@ function onResponseInput(){
   }
 }
 
-/* ---------- 36. ENVÍO DE RESPUESTA ---------- */
 function submitResponse(){
   const ans = aiResponseInput.value;
 
@@ -1006,7 +1155,6 @@ function submitResponse(){
     setTimeout(()=>bottomBox.classList.remove('shake'), 500);
     return;
   }
-
   if(!State.gameActive){ showToast('El juego no está activo.', 'warn'); return; }
 
   if(State.mode === 'solo'){
@@ -1015,40 +1163,27 @@ function submitResponse(){
     updateLimitDisplay();
 
     if(State.currentChallenge.validate(ans)){
-      /* Acierto */
-      SFX.correct();
-      burstConfetti();
-      State.totalCorrect++;
-      State.streak++;
-      State.correctInLevel++;
+      SFX.correct(); burstConfetti();
+      State.totalCorrect++; State.streak++; State.correctInLevel++;
       State.score += 10 + State.streak * 2;
       if(State.streak > State.bestStreak) State.bestStreak = State.streak;
 
       if(State.correctInLevel >= 3){
-        State.level++;
-        State.correctInLevel = 0;
+        State.level++; State.correctInLevel = 0;
         showToast('⬆️ ¡Subiste al nivel ' + State.level + '!', 'success');
       }
 
-      updateStatsUI();
-      checkAchievements();
-      saveStats();
+      updateStatsUI(); checkAchievements(); saveStats();
       showToast('✅ ¡Correcto! +' + (10 + State.streak*2) + ' pts', 'success', 1600);
-
       State.gameActive = false;
       setTimeout(loadNextSoloChallenge, 550);
     } else {
-      /* Fallo */
-      State.totalWrong++;
-      State.streak = 0;
-      updateStatsUI();
-      saveStats();
+      State.totalWrong++; State.streak = 0;
+      updateStatsUI(); saveStats();
       gameOver('❌ ' + State.currentChallenge.error);
     }
   } else {
-    /* Modo 2 jugadores: el J1 evalúa */
-    State.messagesLeft--;
-    updateLimitDisplay();
+    State.messagesLeft--; updateLimitDisplay();
     State.gameActive = false;
     clearInterval(State.timer);
     $('p1EvalArea').style.display = 'block';
@@ -1056,12 +1191,10 @@ function submitResponse(){
   }
 }
 
-/* ---------- 37. MODO 2 JUGADORES ---------- */
 function send2PPrompt(){
   const p1P = $('p1Prompt').value.trim();
   const p1R = $('p1Rule').value.trim();
   if(!p1P){ showToast('Escribe un prompt para la IA.', 'warn'); return; }
-
   if(!State.played2P){ State.played2P = true; checkAchievements(); }
 
   typeText(promptText, p1P);
@@ -1082,28 +1215,23 @@ function judge2P(isCorrect){
 
   if(isCorrect){
     SFX.correct(); burstConfetti();
-    State.totalCorrect++;
-    State.streak++;
-    State.score += 15;
+    State.totalCorrect++; State.streak++; State.score += 15;
     if(State.streak > State.bestStreak) State.bestStreak = State.streak;
     updateStatsUI(); checkAchievements(); saveStats();
 
-    $('p1Prompt').value = '';
-    $('p1Rule').value = '';
+    $('p1Prompt').value = ''; $('p1Rule').value = '';
     promptText.textContent = 'Esperando siguiente prompt...';
     ruleText.textContent = '—';
     aiResponseInput.value = '';
     $('p1EvalArea').style.display = 'none';
     showToast('✅ ¡Punto para el equipo!', 'success');
   } else {
-    State.totalWrong++;
-    State.streak = 0;
+    State.totalWrong++; State.streak = 0;
     updateStatsUI(); saveStats();
     gameOver('❌ El Jugador 1 determinó que la IA se equivocó.');
   }
 }
 
-/* ---------- 38. LÍMITE ---------- */
 function updateLimitDisplay(){
   limitText.textContent = State.messagesLeft + '/10 mensajes restantes';
   const pct = State.messagesLeft / 10 * 100;
@@ -1111,7 +1239,6 @@ function updateLimitDisplay(){
   limitBarFill.className = 'limit-bar-fill ' + (pct <= 20 ? 'danger' : pct <= 50 ? 'warn' : '');
 }
 
-/* ---------- 39. ESTADÍSTICAS UI ---------- */
 function updateStatsUI(){
   $('levelDisplay').textContent  = State.level;
   $('streakDisplay').textContent = State.streak;
@@ -1130,7 +1257,6 @@ function animateChip(el){
   chip.classList.add('pop');
 }
 
-/* ---------- 40. PISTA ---------- */
 function useHint(){
   if(State.mode !== 'solo' || !State.currentChallenge){ showToast('Las pistas solo están en modo Solo.', 'warn'); return; }
   if(State.usedHintThisRound){ showToast('Ya usaste la pista en este reto.', 'warn'); return; }
@@ -1138,17 +1264,13 @@ function useHint(){
   State.hintsUsed++;
   SFX.hint();
   showToast('💡 ' + (State.currentChallenge.hint || 'No hay pista disponible.'), 'info', 4200);
-  checkAchievements();
-  saveStats();
+  checkAchievements(); saveStats();
 }
 
-/* ---------- 41. SALTAR RETO ---------- */
 function skipChallenge(){
   if(State.mode !== 'solo'){ showToast('Solo disponible en modo Solo.', 'warn'); return; }
   if(State.messagesLeft <= 1){ gameOver('📭 Sin mensajes para saltar.'); return; }
-  State.skipsUsed++;
-  State.streak = 0;
-  State.messagesLeft--;
+  State.skipsUsed++; State.streak = 0; State.messagesLeft--;
   updateStatsUI();
   showToast('⏭️ Reto saltado (−1 mensaje)', 'warn');
   saveStats();
@@ -1156,7 +1278,6 @@ function skipChallenge(){
   loadNextSoloChallenge();
 }
 
-/* ---------- 42. GAME OVER ---------- */
 function gameOver(reason){
   clearInterval(State.timer);
   State.gameActive = false;
@@ -1175,7 +1296,6 @@ function gameOver(reason){
   openModal('gameOverModal');
 }
 
-/* ---------- 43. REINICIO ---------- */
 function restartGame(){
   clearInterval(State.timer);
   State.gameActive = false;
@@ -1185,7 +1305,6 @@ function restartGame(){
   State.level = 1;
   State.correctInLevel = 0;
   State.messagesLeft = 10;
-  State.played2P = State.played2P || false;
 
   $('btnPause').textContent = '⏸️ Pausar';
   aiResponseInput.value = '';
@@ -1212,7 +1331,6 @@ function restartGame(){
   showToast('🔄 Sistema reiniciado', 'info', 1500);
 }
 
-/* ---------- 44. MODALES ---------- */
 function openModal(id){
   const m = $(id);
   m.classList.add('active');
@@ -1225,7 +1343,6 @@ document.querySelectorAll('.modal-overlay').forEach(ov => {
   ov.addEventListener('click', e => { if(e.target === ov) ov.classList.remove('active'); });
 });
 
-/* ---------- 45. LOGROS: RENDER Y CHECK ---------- */
 function renderAchievements(){
   const grid = $('achievementsGrid');
   grid.innerHTML = '';
@@ -1255,7 +1372,6 @@ function checkAchievements(){
   }
 }
 
-/* ---------- 46. ESTADÍSTICAS: MODAL ---------- */
 const _origOpenModal = openModal;
 openModal = function(id){
   if(id === 'statsModal') renderStatsModal();
@@ -1265,6 +1381,10 @@ openModal = function(id){
 function renderStatsModal(){
   const total = State.totalCorrect + State.totalWrong;
   const acc = total ? Math.round(State.totalCorrect / total * 100) : 0;
+  const ifaceNames = {
+    default:'Clásica', chatgpt:'ChatGPT', gemini:'Gemini',
+    claude:'Claude', grok:'Grok', deepseek:'DeepSeek', custom:'Custom'
+  };
   $('statsBody').innerHTML = `
     <div>🎯 Partidas totales: <b>${total}</b></div>
     <div>✅ Aciertos: <b>${State.totalCorrect}</b></div>
@@ -1274,26 +1394,23 @@ function renderStatsModal(){
     <div>🏆 Mejor puntuación: <b>${State.bestScore || 0}</b></div>
     <div>💡 Pistas usadas: <b>${State.hintsUsed}</b></div>
     <div>⏭️ Retos saltados: <b>${State.skipsUsed}</b></div>
+    <div>🎨 Interfaz actual: <b>${ifaceNames[State.interface]||State.interface}</b></div>
     <div>🏅 Logros: <b>${State.achievements.length}/${ACHIEVEMENTS.length}</b></div>
   `;
 }
 
-/* ---------- 47. RESET TOTAL ---------- */
 function resetAll(){
   if(!confirm('¿Seguro que quieres borrar todo el progreso?')) return;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   Object.assign(State, {
     bestStreak:0, bestScore:0, totalCorrect:0, totalWrong:0,
-    hintsUsed:0, skipsUsed:0, achievements:[]
+    hintsUsed:0, skipsUsed:0, achievements:[], interfaceChanged:false
   });
-  renderAchievements();
-  updateStatsUI();
-  saveStats();
+  renderAchievements(); updateStatsUI(); saveStats();
   closeModal('settingsModal');
   showToast('🗑️ Progreso borrado', 'error');
 }
 
-/* ---------- 48. ATAJOS DE TECLADO ---------- */
 document.addEventListener('keydown', e => {
   const tag = (e.target.tagName || '').toLowerCase();
   const typing = tag === 'input' || tag === 'textarea';
@@ -1311,16 +1428,19 @@ document.addEventListener('keydown', e => {
   if(k === 'h') useHint();
   if(k === 'p') togglePause();
   if(k === 's') skipChallenge();
+  if(k === 'i') cycleInterface();
 });
 
-/* ---------- 49. AUTO-GUARDADO PERIÓDICO ---------- */
+function cycleInterface(){
+  const idx = IFACES.indexOf(State.interface);
+  setInterface(IFACES[(idx+1) % IFACES.length]);
+}
+
 setInterval(saveStats, 15000);
 
-/* ---------- 50. AVISO AL SALIR CON PARTIDA ACTIVA ---------- */
 window.addEventListener('beforeunload', e => {
   if(State.gameActive && State.score > 0){
-    e.preventDefault();
-    e.returnValue = '';
+    e.preventDefault(); e.returnValue = '';
   }
 });
 </script>
