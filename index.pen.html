@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ControlAI: pon a prueba tu capacidad de seguir reglas estrictas como si fueras una IA.">
+  <meta name="theme-color" content="#00a8ff">
+  <title>ControlAI — Reta a la IA</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <style>
+    /* ============ 1. VARIABLES DE TEMA (claro/oscuro) ============ */
+    :root{
+      --bg:#ffffff; --text:#0b0f14; --muted:#5b6675;
+      --card:#f0f4f8; --border:#d5dde5;
+      --primary:#00a8ff; --success:#00c853; --warn:#ff7f1d;
+      --danger:#800000; --accent:#6c93be;
+      --gray-box:#c4c4c4; --gray-box-border:#7f7f7f;
+      --prompt-bg:#ba7958; --rule-bg:#800000;
+      --shadow:0 6px 20px rgba(0,0,0,.10);
+      --radius:12px;
+    }
+    [data-theme="dark"]{
+      --bg:#0e131a; --text:#e8eef5; --muted:#9aa7b4;
+      --card:#172029; --border:#2b3742;
+      --primary:#38b6ff; --success:#22c55e; --warn:#fb923c;
+      --danger:#c0392b; --accent:#3f5f82;
+      --gray-box:#1b242e; --gray-box-border:#3a4756;
+      --prompt-bg:#8c5a41; --rule-bg:#9b1c1c;
+      --shadow:0 6px 20px rgba(0,0,0,.45);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
+    html{scroll-behavior:smooth}
+
+    body{
+      background:var(--bg); color:var(--text);
+      padding:20px; max-width:1100px; margin:0 auto;
+      display:flex; flex-direction:column; min-height:100vh;
+      transition:background .3s ease, color .3s ease;
+    }
+
+    /* ============ 2. ACCESIBILIDAD ============ */
+    .sr-only{
+      position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+    }
+    .skip-link{
+      position:absolute;left:-999px;top:8px;z-index:999;
+      background:var(--primary);color:#fff;padding:10px 16px;border-radius:8px;
+    }
+    .skip-link:focus{left:8px}
+    :focus-visible{
+      outline:3px solid var(--primary);
+      outline-offset:2px; border-radius:6px;
+    }
+    @media (prefers-reduced-motion: reduce){
+      *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important}
+    }
+
+    /* ============ 3. HEADER ============ */
+    .top-bar{
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:15px; gap:12px; flex-wrap:wrap;
+    }
+    .ai-name-container{display:flex;align-items:center;gap:10px;font-size:20px;flex-wrap:wrap}
+    .ai-name-input{
+      border:3px solid var(--rule-bg); background:var(--bg); color:var(--text);
+      padding:6px 12px; font-size:20px; outline:none; width:260px; border-radius:6px;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .ai-name-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(0,168,255,.18)}
+
+    .header-actions{display:flex;gap:8px;align-items:center}
+    .icon-btn{
+      background:var(--card); border:1px solid var(--border); color:var(--text);
+      width:42px;height:42px;border-radius:10px;cursor:pointer;
+      font-size:18px; display:grid;place-items:center;
+      transition:transform .15s, background .2s;
+    }
+    .icon-btn:hover{transform:translateY(-2px);background:var(--border)}
+    .icon-btn:active{transform:scale(.94)}
+
+    .brand-logo{display:flex;align-items:center;gap:8px;font-size:30px;font-weight:bold}
+    .brand-logo .control{color:#7f7f7f}
+    .brand-logo .ai{color:#e67e22}
+    .brand-logo svg{width:42px;height:42px;stroke:#70c5e8;animation:spinSoft 9s linear infinite}
+    @keyframes spinSoft{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+    /* ============ 4. BARRA DE ESTADÍSTICAS ============ */
+    .stats-bar{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .stat-chip{
+      background:var(--card); border:1px solid var(--border);
+      padding:6px 14px;border-radius:999px;font-size:14px;font-weight:bold;
+      display:flex;align-items:center;gap:6px;transition:transform .2s;
+    }
+    .stat-chip.pop{animation:pop .35s ease}
+    @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+    /* ============ 5. SELECTOR DE MODO Y DIFICULTAD ============ */
+    .modes-container{display:flex;align-items:center;gap:30px;margin-bottom:18px;flex-wrap:wrap}
+    .mode-item{
+      display:flex;align-items:center;gap:8px;cursor:pointer;font-size:18px;
+      padding:6px 4px 8px;position:relative;user-select:none;
+      transition:color .2s, transform .15s;
+    }
+    .mode-item:hover{transform:translateY(-2px)}
+    .mode-item svg{width:36px;height:36px}
+    .mode-item.active{color:var(--primary)}
+    .mode-item.active::after{
+      content:'';position:absolute;bottom:0;left:0;width:100%;height:4px;
+      background:var(--success);border-radius:3px;animation:slideIn .3s ease;
+    }
+    @keyframes slideIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+    .difficulty-select{
+      background:var(--card);border:1px solid var(--border);color:var(--text);
+      padding:8px 12px;border-radius:10px;font-size:15px;cursor:pointer;
+    }
+
+    /* ============ 6. ÁREA DE JUEGO ============ */
+    .game-area{display:flex;flex-direction:column;gap:18px;flex:1}
+    .top-section{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+    .left-controls{display:flex;flex-direction:column;gap:16px;margin-top:20px;flex:1;min-width:280px}
+
+    .seconds-container{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:bold}
+    .seconds-pill{
+      background:var(--accent);color:#fff;padding:8px 26px;border-radius:20px;
+      font-size:20px;min-width:120px;text-align:center;
+      transition:background .3s, transform .2s;
+    }
+    .seconds-pill.warning{background:var(--warn);animation:pulseWarn .8s infinite}
+    .seconds-pill.danger{background:var(--danger);animation:pulseWarn .5s infinite}
+    @keyframes pulseWarn{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+    .time-bar{
+      height:8px;background:var(--border);border-radius:99px;overflow:hidden;width:100%;max-width:340px;
+    }
+    .time-bar-fill{
+      height:100%;width:100%;background:var(--accent);
+      transition:width 1s linear, background .3s;
+    }
+    .time-bar-fill.warning{background:var(--warn)}
+    .time-bar-fill.danger{background:var(--danger)}
+
+    .action-buttons{display:flex;gap:10px;flex-wrap:wrap}
+    .btn-pill{
+      border:none;padding:11px 20px;border-radius:25px;color:#fff;font-size:16px;
+      cursor:pointer;font-weight:600;transition:transform .15s, opacity .2s, box-shadow .2s;
+      display:inline-flex;align-items:center;gap:6px;
+    }
+    .btn-pill:hover{opacity:.92;transform:translateY(-2px);box-shadow:var(--shadow)}
+    .btn-pill:active{transform:scale(.96)}
+    .btn-pill[aria-pressed="true"]{box-shadow:0 0 0 3px rgba(0,168,255,.35) inset}
+    .btn-thought{background:var(--primary)}
+    .btn-limit{background:var(--warn)}
+    .btn-hint{background:#8e44ad}
+    .btn-skip{background:#607d8b}
+    .btn-pause{background:#455a64}
+
+    /* ============ 7. PANEL DE PROMPT Y REGLA ============ */
+    .right-info{display:flex;flex-direction:column;align-items:flex-end;gap:14px;width:450px;max-width:100%}
+    .prompt-box{
+      background:var(--prompt-bg);width:100%;min-height:140px;border-radius:28px;
+      padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;
+      color:#fff;text-align:center;font-size:18px;box-shadow:var(--shadow);
+      position:relative;overflow:hidden;
+    }
+    .prompt-box::after{
+      content:'';position:absolute;inset:0;border-radius:28px;
+      box-shadow:inset 0 0 0 2px rgba(255,255,255,.15);pointer-events:none;
+    }
+    .prompt-line{width:80%;height:5px;background:rgba(0,0,0,.65);border-radius:3px;margin-top:12px}
+    .cursor-blink{display:inline-block;width:8px;background:#fff;animation:blink .9s steps(2) infinite;margin-left:2px}
+    @keyframes blink{50%{opacity:0}}
+
+    .rule-container{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:bold;width:100%;justify-content:flex-end}
+    .rule-pill{
+      background:var(--rule-bg);color:#fff;padding:10px 18px;border-radius:18px;
+      font-size:15px;font-weight:normal;flex:1;text-align:center;word-break:break-word;
+      transition:transform .2s;
+    }
+    .rule-pill.flash{animation:pop .4s ease}
+
+    /* ============ 8. PANELES PLEGABLES ============ */
+    .panel-box{
+      background:var(--card);border:2px dashed var(--accent);border-radius:var(--radius);
+      padding:12px;display:none;animation:fadeSlide .25s ease;
+    }
+    .panel-box.active{display:block}
+    @keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+    /* ============ 9. BARRA DE PROGRESO DE MENSAJES ============ */
+    .limit-bar{height:10px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:8px}
+    .limit-bar-fill{height:100%;background:var(--success);width:100%;transition:width .35s ease, background .3s}
+    .limit-bar-fill.warn{background:var(--warn)}
+    .limit-bar-fill.danger{background:var(--danger)}
+
+    /* ============ 10. CAJA INFERIOR ============ */
+    .bottom-box{
+      background:var(--gray-box);border:3px solid var(--gray-box-border);border-radius:8px;
+      padding:16px;display:flex;flex-direction:column;gap:10px;margin-top:6px;
+      transition:background .3s, border-color .3s;
+    }
+    .bottom-box.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
+    @keyframes shake{
+      10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+      30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}
+    }
+    .bottom-box label{font-weight:bold;font-size:15px}
+
+    .response-input{
+      width:100%;min-height:80px;padding:10px;font-size:16px;
+      border:1px solid var(--border);border-radius:8px;outline:none;resize:vertical;
+      background:var(--bg);color:var(--text);transition:border-color .2s, box-shadow .2s;
+    }
+    .response-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,168,255,.18)}
+    .response-input.invalid{border-color:var(--danger)}
+    .response-input.valid{border-color:var(--success)}
+
+    .input-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+    .btn-send{
+      align-self:flex-end;background:var(--success);color:#fff;border:none;
+      padding:10px 22px;font-size:15px;font-weight:bold;border-radius:8px;cursor:pointer;
+      transition:transform .15s, filter .2s;
+    }
+    .btn-send:hover{filter:brightness(1.08);transform:translateY(-2px)}
+    .btn-send:active{transform:scale(.97)}
+    .btn-send:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+    .live-feedback{font-size:13px;font-weight:bold;min-height:18px}
+    .live-feedback.ok{color:#1b8a3f}
+    .live-feedback.bad{color:#c62828}
+    [data-theme="dark"] .live-feedback.ok{color:#4ade80}
+    [data-theme="dark"] .live-feedback.bad{color:#f87171}
+
+    /* ============ 11. FORMULARIO 2 JUGADORES ============ */
+    .p1-form{
+      display:flex;flex-direction:column;gap:8px;margin-bottom:8px;
+      background:var(--card);padding:12px;border-radius:var(--radius);border:1px solid var(--border);
+    }
+    .p1-form strong{font-size:14px;letter-spacing:.3px}
+
+    /* ============ 12. MODALES ============ */
+    .modal-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
+      justify-content:center;align-items:center;z-index:100;padding:16px;
+      backdrop-filter:blur(3px);
+    }
+    .modal-overlay.active{display:flex;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    .modal-content{
+      background:var(--bg);color:var(--text);padding:28px;border-radius:16px;
+      text-align:center;max-width:440px;width:100%;border:4px solid var(--danger);
+      box-shadow:0 20px 50px rgba(0,0,0,.4);animation:zoomIn .25s ease;
+      max-height:90vh;overflow-y:auto;
+    }
+    @keyframes zoomIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-content h2{color:var(--danger);margin-bottom:10px}
+    .modal-content p{color:var(--muted);margin-bottom:6px}
+
+    .modal-actions{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+    .btn-restart{
+      background:var(--primary);color:#fff;border:none;padding:10px 20px;
+      font-size:15px;border-radius:8px;cursor:pointer;font-weight:bold;
+      transition:transform .15s, filter .2s;
+    }
+    .btn-restart:hover{transform:translateY(-2px);filter:brightness(1.1)}
+    .btn-secondary{background:var(--accent)}
+    .btn-danger{background:var(--danger)}
+
+    /* ============ 13. LOGROS ============ */
+    .achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
+    .achv{
+      background:var(--card);border:1px solid var(--border);border-radius:10px;
+      padding:10px;font-size:12px;text-align:center;opacity:.45;transition:.2s;
+    }
+    .achv.unlocked{opacity:1;border-color:var(--success);box-shadow:0 0 0 2px rgba(0,200,83,.25)}
+    .achv .emoji{font-size:24px;display:block;margin-bottom:4px}
+
+    /* ============ 14. TOASTS ============ */
+    .toast-container{
+      position:fixed;top:16px;right:16px;z-index:200;display:flex;
+      flex-direction:column;gap:8px;pointer-events:none;
+    }
+    .toast{
+      background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;
+      box-shadow:var(--shadow);animation:toastIn .3s ease;max-width:300px;
+      border-left:5px solid var(--primary);
+    }
+    .toast.success{border-color:var(--success)}
+    .toast.error{border-color:var(--danger)}
+    .toast.warn{border-color:var(--warn)}
+    @keyframes toastIn{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+
+    /* ============ 15. CONFETI ============ */
+    #confettiCanvas{
+      position:fixed;inset:0;pointer-events:none;z-index:150;display:none;
+    }
+
+    /* ============ 16. RESPONSIVE ============ */
+    @media (max-width: 860px){
+      .top-section{flex-direction:column-reverse}
+      .right-info{width:100%;align-items:stretch}
+      .left-controls{margin-top:0}
+      .action-buttons .btn-pill{flex:1 1 45%;justify-content:center}
+      .seconds-container{justify-content:center}
+      .time-bar{max-width:100%}
+      .modes-container{gap:18px}
+    }
+    @media (max-width: 480px){
+      body{padding:12px}
+      .ai-name-input{width:100%}
+      .brand-logo{font-size:24px}
+      .brand-logo svg{width:34px;height:34px}
+      .ai-name-container{font-size:16px;width:100%}
+      .btn-pill{font-size:14px;padding:10px 14px}
+    }
+
+    /* ============ 17. ESTILOS DE IMPRESIÓN ============ */
+    @media print{
+      .header-actions,.action-buttons,.btn-send,.modes-container{display:none}
+      body{background:#fff;color:#000}
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#mainGame" class="skip-link">Saltar al juego</a>
+
+  <!-- ============ HEADER ============ -->
+  <header class="top-bar">
+    <div class="ai-name-container">
+      <label for="aiNameInput">Nombre de la IA:</label>
+      <input type="text" id="aiNameInput" class="ai-name-input" value="ControlBot"
+             maxlength="18" aria-label="Nombre de la IA" autocomplete="off">
+    </div>
+
+    <div class="header-actions">
+      <button class="icon-btn" id="btnSound" onclick="toggleSound()" title="Activar/desactivar sonido" aria-label="Sonido">🔊</button>
+      <button class="icon-btn" id="btnTheme" onclick="toggleTheme()" title="Cambiar tema" aria-label="Tema">🌙</button>
+      <button class="icon-btn" onclick="openModal('achievementsModal')" title="Logros" aria-label="Logros">🏆</button>
+      <button class="icon-btn" onclick="openModal('settingsModal')" title="Ajustes" aria-label="Ajustes">⚙️</button>
+      <button class="icon-btn" onclick="openModal('statsModal')" title="Estadísticas" aria-label="Estadísticas">📊</button>
+    </div>
+
+    <div class="brand-logo" aria-hidden="true">
+      <span class="control">Control</span><span class="ai">AI</span>
+      <svg viewBox="0 0 100 100" fill="none" stroke-width="6" stroke-linecap="round">
+        <path d="M 30,50 C 20,20 80,20 70,50 C 60,80 40,80 30,50 Z" />
+        <path d="M 50,30 C 20,20 20,80 50,70 C 80,60 80,40 50,30 Z" />
+      </svg>
+    </div>
+  </header>
+
+  <!-- ============ BARRA DE ESTADÍSTICAS ============ -->
+  <div class="stats-bar" role="status" aria-live="polite">
+    <div class="stat-chip">⭐ Nivel <span id="levelDisplay">1</span></div>
+    <div class="stat-chip">🔥 Racha <span id="streakDisplay">0</span></div>
+    <div class="stat-chip">🏅 Récord <span id="bestDisplay">0</span></div>
+    <div class="stat-chip">✅ Aciertos <span id="hitsDisplay">0</span></div>
+    <div class="stat-chip">❌ Fallos <span id="missDisplay">0</span></div>
+  </div>
+
+  <!-- ============ MODOS + DIFICULTAD ============ -->
+  <div class="modes-container" role="tablist" aria-label="Modo de juego">
+    <div class="mode-item active" id="modeSoloBtn" role="tab" tabindex="0"
+         aria-selected="true" onclick="setMode('solo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setMode('solo')}">
+      <svg viewBox="0 0 24 24" fill="#00a8ff" aria-hidden="true">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+      <span>Solo</span>
+    </div>
+
+    <div class="mode-item" id="mode2PBtn" role="tab" tabindex="0"
+         aria-selected="false" onclick="setMode('2p')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setMode('2p')}">
+      <div style="display:flex" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="#3f51b5" style="margin-right:-15px;">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        <svg viewBox="0 0 24 24" fill="#00a8ff">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </div>
+      <span>2 jugadores</span>
+    </div>
+
+    <label class="sr-only" for="difficultySelect">Dificultad</label>
+    <select id="difficultySelect" class="difficulty-select" onchange="setDifficulty(this.value)">
+      <option value="easy">🟢 Fácil (30s)</option>
+      <option value="normal" selected>🟡 Normal (20s)</option>
+      <option value="hard">🔴 Difícil (12s)</option>
+      <option value="mixed">🎲 Mixto aleatorio</option>
+    </select>
+  </div>
+
+  <!-- ============ ÁREA DE JUEGO ============ -->
+  <main class="game-area" id="mainGame">
+    <div class="top-section">
+      <div class="left-controls">
+        <div class="seconds-container">
+          <span id="secondsLabel">SEGUNDOS:</span>
+          <div class="seconds-pill" id="secondsDisplay" aria-live="polite">20s</div>
+        </div>
+        <div class="time-bar" aria-hidden="true"><div class="time-bar-fill" id="timeBarFill"></div></div>
+
+        <div class="action-buttons">
+          <button class="btn-pill btn-thought" id="btnThought" aria-pressed="false" onclick="toggleThought()">🧠 Mostrar pensamiento</button>
+          <button class="btn-pill btn-limit" id="btnLimit" aria-pressed="false" onclick="toggleLimit()">⏳ Mostrar límite</button>
+          <button class="btn-pill btn-hint" onclick="useHint()">💡 Pista</button>
+          <button class="btn-pill btn-skip" onclick="skipChallenge()">⏭️ Saltar</button>
+          <button class="btn-pill btn-pause" id="btnPause" onclick="togglePause()">⏸️ Pausar</button>
+        </div>
+      </div>
+
+      <div class="right-info">
+        <div class="prompt-box">
+          <div id="promptText">Cargando prompt...</div>
+          <div class="prompt-line"></div>
+        </div>
+
+        <div class="rule-container">
+          <span>REGLA:</span>
+          <div class="rule-pill" id="ruleText">Cargando regla...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANELES PLEGABLES -->
+    <div class="panel-box" id="thoughtPanel">
+      <strong>🧠 Pensamiento Interno de la IA (Scratchpad):</strong>
+      <textarea id="thoughtInput" class="response-input" style="margin-top:8px;"
+        placeholder="Escribe aquí tu proceso de razonamiento antes de responder..."
+        aria-label="Pensamiento interno"></textarea>
+      <div class="input-meta"><span>Este texto no se envía, solo te ayuda a razonar.</span><span id="thoughtCount">0</span></div>
+    </div>
+
+    <div class="panel-box" id="limitPanel" style="border-color:var(--warn)">
+      <strong>⏳ Límite de Mensajes:</strong> <span id="limitText">10/10 mensajes restantes</span>
+      <div class="limit-bar"><div class="limit-bar-fill" id="limitBarFill"></div></div>
+    </div>
+
+    <!-- FORMULARIO JUGADOR 1 -->
+    <div class="p1-form" id="p1Form" style="display:none">
+      <strong>Jugador 1 (Humano): Define el reto</strong>
+      <input type="text" id="p1Prompt" placeholder="Escribe la pregunta o prompt para la IA"
+             class="response-input" style="min-height:40px" maxlength="160" autocomplete="off">
+      <input type="text" id="p1Rule" placeholder="Escribe la regla (Ej: 'Sin usar la letra E')"
+             class="response-input" style="min-height:40px" maxlength="160" autocomplete="off">
+      <button class="btn-send" onclick="send2PPrompt()" style="background:#3f51b5;align-self:flex-end">📤 Enviar reto a la IA</button>
+    </div>
+
+    <!-- CAJA INFERIOR -->
+    <div class="bottom-box" id="bottomBox">
+      <label id="responseLabel" for="aiResponseInput">Respuesta de la IA (<span id="aiNameDisplay">ControlBot</span>):</label>
+      <textarea id="aiResponseInput" class="response-input"
+        placeholder="Escribe tu respuesta cumpliendo exactamente las reglas..."
+        aria-describedby="liveFeedback"></textarea>
+      <div class="input-meta">
+        <span id="liveFeedback" class="live-feedback" aria-live="polite"></span>
+        <span id="charCount">0 caracteres</span>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="scoreDisplay" style="font-weight:bold">Puntos: 0</span>
+        <button class="btn-send" id="btnSubmitResponse" onclick="submitResponse()">✅ Responder como IA</button>
+      </div>
+
+      <div id="p1EvalArea" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <label>Jugador 1: ¿La respuesta de la IA fue correcta?</label>
+        <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn-send" style="background:var(--success);flex:1" onclick="judge2P(true)">✅ Correcto</button>
+          <button class="btn-send" style="background:var(--danger);flex:1" onclick="judge2P(false)">❌ Se equivocó</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="text-align:center;color:var(--muted);font-size:12px;margin-top:18px">
+    ControlAI · v2.0 · Ctrl+Enter responder · T pensamiento · L límite · H pista · P pausa · Esc cerrar
+  </footer>
+
+  <!-- ============ MODAL GAME OVER ============ -->
+  <div class="modal-overlay" id="gameOverModal" role="dialog" aria-modal="true" aria-labelledby="goTitle">
+    <div class="modal-content">
+      <h2 id="goTitle">¡TE EQUIVOCASTE!</h2>
+      <p id="errorReason">Has violado las reglas del sistema.</p>
+      <p id="goScore" style="margin-top:10px;font-weight:bold"></p>
+      <div class="modal-actions">
+        <button class="btn-restart" onclick="restartGame()">🔄 Reiniciar</button>
+        <button class="btn-restart btn-secondary" onclick="closeModal('gameOverModal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL AJUSTES ============ -->
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="modal-content" style="border-color:var(--primary)">
+      <h2 id="setTitle" style="color:var(--primary)">⚙️ Ajustes</h2>
+      <div style="display:flex;flex-direction:column;gap:12px;text-align:left;margin-top:14px">
+        <label style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span>🔊 Sonido</span>
+          <input type="checkbox" id="setSound" checked onchange="toggleSound()">
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span>🌙 Tema oscuro</span>
+          <input type="checkbox" id="setTheme" onchange="toggleTheme()">
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span>⏱️ Segundos por reto</span>
+          <input type="number" id="setTime" min="5" max="120" value="20" style="width:80px;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-restart btn-secondary" onclick="closeModal('settingsModal')">Cerrar</button>
+        <button class="btn-restart btn-danger" onclick="resetAll()">🗑️ Borrar progreso</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL LOGROS ============ -->
+  <div class="modal-overlay" id="achievementsModal" role="dialog" aria-modal="true" aria-labelledby="achTitle">
+    <div class="modal-content" style="border-color:var(--success)">
+      <h2 id="achTitle" style="color:var(--success)">🏆 Logros</h2>
+      <div class="achievements-grid" id="achievementsGrid"></div>
+      <div class="modal-actions">
+        <button class="btn-restart btn-secondary" onclick="closeModal('achievementsModal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL ESTADÍSTICAS ============ -->
+  <div class="modal-overlay" id="statsModal" role="dialog" aria-modal="true" aria-labelledby="statTitle">
+    <div class="modal-content" style="border-color:var(--accent)">
+      <h2 id="statTitle" style="color:var(--accent)">📊 Estadísticas</h2>
+      <div id="statsBody" style="text-align:left;font-size:14px;line-height:1.9;margin-top:12px"></div>
+      <div class="modal-actions">
+        <button class="btn-restart btn-secondary" onclick="closeModal('statsModal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+  <canvas id="confettiCanvas"></canvas>
+
+<script>
+/* =====================================================================
+   CONTROL AI · v2.0
+   ===================================================================== */
+
+/* ---------- 18. ESTADO GLOBAL ---------- */
+const State = {
+  mode:'solo',
+  difficulty:'normal',
+  aiName:'ControlBot',
+  showThought:false,
+  showLimit:false,
+  sound:true,
+  theme:'light',
+  timeLeft:20,
+  timeMax:20,
+  timer:null,
+  paused:false,
+  score:0,
+  streak:0,
+  bestStreak:0,
+  level:1,
+  correctInLevel:0,
+  messagesLeft:10,
+  currentChallenge:null,
+  hintsUsed:0,
+  skipsUsed:0,
+  totalCorrect:0,
+  totalWrong:0,
+  usedHintThisRound:false,
+  achievements:[],
+  gameActive:false
+};
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- 19. BANCO AMPLIADO DE RETOS ---------- */
+const CHALLENGES = [
+  /* --- MATEMÁTICAS --- */
+  {cat:'math', diff:1, prompt:"Calcula: 25 × 4 − 10",
+   rule:"Responde ÚNICAMENTE con el número final.",
+   validate:a=>a.trim()==="90", error:"El resultado exacto debía ser 90.",
+   hint:"Primero multiplica, después resta.", live:null},
+  {cat:'math', diff:1, prompt:"¿Cuánto es 7 × 8?",
+   rule:"Responde solo con el número, sin palabras.",
+   validate:a=>a.trim()==="56", error:"7 × 8 = 56.",
+   hint:"Es un número par de dos cifras.", live:null},
+  {cat:'math', diff:2, prompt:"Calcula la raíz cuadrada de 144.",
+   rule:"Responde en números romanos.",
+   validate:a=>a.trim().toUpperCase()==="XII", error:"√144 = 12 → XII en números romanos.",
+   hint:"Doce en números romanos.", live:null},
+  {cat:'math', diff:2, prompt:"Suma todos los números del 1 al 10.",
+   rule:"Responde con el número seguido de un punto.",
+   validate:a=>a.trim()==="55.", error:"La suma es 55 → '55.'",
+   hint:"Fórmula: n(n+1)/2.", live:a=>({ok:a.trim()===""||/^\d+\.$/.test(a.trim()), msg:a.trim()&&!/^\d+\.$/.test(a.trim())?"Falta el punto final":""})},
+
+  /* --- LENGUAJE --- */
+  {cat:'lang', diff:1, prompt:"Escribe una oración sobre la inteligencia artificial.",
+   rule:"PROHIBIDO usar la letra 'A'.",
+   validate:a=>!a.toLowerCase().includes('a') && a.trim().length>5,
+   error:"Usaste la letra 'A' en tu respuesta.",
+   hint:"Usa sinónimos como 'mente' o 'sistema'.",
+   live:a=>({ok:!a.toLowerCase().includes('a'), msg:a.toLowerCase().includes('a')?"⚠️ Contiene la letra 'A'":""})},
+  {cat:'lang', diff:1, prompt:"Menciona un color primario.",
+   rule:"Escribe toda la respuesta en MAYÚSCULAS.",
+   validate:a=>a.trim().length>0 && a===a.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(a),
+   error:"La respuesta debe estar completamente en MAYÚSCULAS.",
+   hint:"Rojo, azul o amarillo.",
+   live:a=>({ok:a===""||a===a.toUpperCase(), msg:a&&a!==a.toUpperCase()?"⚠️ Debe estar en MAYÚSCULAS":""})},
+  {cat:'lang', diff:2, prompt:"Escribe la palabra 'SISTEMA' al revés.",
+   rule:"Debe ser exactamente la palabra invertida, en mayúsculas.",
+   validate:a=>a.trim().toUpperCase()==="AMETSIS",
+   error:"La palabra invertida es AMETSIS.",
+   hint:"Empieza por A y termina en S.", live:null},
+  {cat:'lang', diff:2, prompt:"Di un sinónimo de 'rápido'.",
+   rule:"Debe tener exactamente 6 letras.",
+   validate:a=>["veloz ","ligero"].includes(a.trim().toLowerCase())||(a.trim().length===6&&a.trim().toLowerCase()!=="rápido"),
+   error:"Necesitabas un sinónimo de 6 letras (p. ej. 'veloz ').",
+   hint:"Piensa en 'veloz'.", live:a=>({ok:a.trim().length===6||a.trim()==="", msg:a.trim()&&a.trim().length!==6?`Tiene ${a.trim().length} letras, necesitas 6`:""})},
+
+  /* --- LÓGICA --- */
+  {cat:'logic', diff:1, prompt:"¿Cuál es la capital de España?",
+   rule:"Responde en exactamente UNA palabra.",
+   validate:a=>a.trim().toLowerCase()==="madrid",
+   error:"Debías responder solo 'Madrid'.",
+   hint:"Es una ciudad del centro de la península.",
+   live:a=>({ok:!a.trim().includes(' '), msg:a.trim().includes(' ')?'⚠️ Solo una palabra':''})},
+  {cat:'logic', diff:2, prompt:"Si todos los A son B y todos los B son C, ¿qué se deduce?",
+   rule:"Responde empezando por 'Todos los'.",
+   validate:a=>a.trim().toLowerCase().startsWith("todos los"),
+   error:"Debías empezar con 'Todos los'.",
+   hint:"Empieza literalmente por 'Todos los'.", live:null},
+  {cat:'logic', diff:3, prompt:"Tengo 3 manzanas, doy 1 y me como otra. ¿Cuántas quedan?",
+   rule:"Responde con número + palabra, todo en minúsculas.",
+   validate:a=>/^1\s*manzana$/.test(a.trim().toLowerCase()),
+   error:"Queda 1 manzana → '1 manzana'.",
+   hint:"3 − 1 − 1 = 1.", live:null},
+
+  /* --- MEMORIA / TRANSFORMACIÓN --- */
+  {cat:'memory', diff:2, prompt:"Convierte la palabra 'CONTROL' a minúsculas.",
+   rule:"Añade un signo de exclamación al final.",
+   validate:a=>a.trim()==="control!", error:"Debía ser exactamente 'control!'.",
+   hint:"Todo minúsculas y un '!' al final.", live:null},
+  {cat:'memory', diff:2, prompt:"Escribe los números del 1 al 5 separados por guiones.",
+   rule:"Sin espacios.",
+   validate:a=>a.trim()==="1-2-3-4-5", error:"Debía ser '1-2-3-4-5'.",
+   hint:"Patrón: número-guion-número.", live:a=>({ok:!a.includes(' '), msg:a.includes(' ')?'⚠️ Sin espacios':''})},
+
+  /* --- CREATIVIDAD --- */
+  {cat:'creative', diff:3, prompt:"Inventa un nombre para un robot explorador.",
+   rule:"Debe terminar en '-tron' y tener más de 8 letras.",
+   validate:a=>/tron$/i.test(a.trim()) && a.trim().length>8,
+   error:"Debía terminar en '-tron' y tener más de 8 caracteres.",
+   hint:"Ejemplo: 'Exploratron'.", live:a=>({ok:a===''||(/tron$/i.test(a.trim())&&a.trim().length>8), msg:a&&!/tron$/i.test(a.trim())?"⚠️ Debe terminar en '-tron'":(a&&a.trim().length<=8?"⚠️ Muy corto":'')})},
+  {cat:'creative', diff:2, prompt:"Escribe un eslogan para una IA.",
+   rule:"Máximo 4 palabras.",
+   validate:a=>a.trim().split(/\s+/).length<=4 && a.trim().length>3,
+   error:"Usaste más de 4 palabras.", hint:"Sé breve y directo.",
+   live:a=>({ok:a.trim()===''||a.trim().split(/\s+/).length<=4, msg:a.trim().split(/\s+/).length>4?"⚠️ Máximo 4 palabras":""})}
+];
+
+/* ---------- 20. LOGROS ---------- */
+const ACHIEVEMENTS = [
+  {id:'first',  emoji:'🎉', name:'Primer acierto',   test:s=>s.totalCorrect>=1},
+  {id:'streak5',emoji:'🔥', name:'Racha de 5',       test:s=>s.bestStreak>=5},
+  {id:'streak10',emoji:'⚡',name:'Racha de 10',      test:s=>s.bestStreak>=10},
+  {id:'score50',emoji:'🥉', name:'50 puntos',        test:s=>s.score>=50},
+  {id:'score100',emoji:'🥈',name:'100 puntos',       test:s=>s.score>=100},
+  {id:'score250',emoji:'🥇',name:'250 puntos',       test:s=>s.score>=250},
+  {id:'hint',   emoji:'💡', name:'Usar una pista',   test:s=>s.hintsUsed>=1},
+  {id:'twop',   emoji:'👥', name:'Modo 2 jugadores', test:s=>s.played2P},
+  {id:'perfect',emoji:'💎', name:'10 sin fallar',    test:s=>s.bestStreak>=10 && s.totalWrong===0}
+];
+
+/* ---------- 21. PERSISTENCIA ---------- */
+const STORAGE_KEY = 'controlai_v2_stats';
+
+function loadStats(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    State.bestStreak   = s.bestStreak   || 0;
+    State.totalCorrect = s.totalCorrect || 0;
+    State.totalWrong   = s.totalWrong   || 0;
+    State.hintsUsed    = s.hintsUsed    || 0;
+    State.skipsUsed    = s.skipsUsed    || 0;
+    State.achievements = s.achievements || [];
+    State.bestScore    = s.bestScore    || 0;
+    State.sound        = s.sound !== undefined ? s.sound : true;
+    State.theme        = s.theme || 'light';
+  }catch(e){ console.warn('No se pudo cargar el progreso', e); }
+}
+
+function saveStats(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      bestStreak: State.bestStreak,
+      bestScore: State.bestScore || 0,
+      totalCorrect: State.totalCorrect,
+      totalWrong: State.totalWrong,
+      hintsUsed: State.hintsUsed,
+      skipsUsed: State.skipsUsed,
+      achievements: State.achievements,
+      sound: State.sound,
+      theme: State.theme
+    }));
+  }catch(e){}
+}
+
+/* ---------- 22. AUDIO (Web Audio API) ---------- */
+let audioCtx = null;
+function beep(freq, dur, type='sine', vol=0.07){
+  if(!State.sound) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+const SFX = {
+  correct(){ beep(660,.09,'sine',.08); setTimeout(()=>beep(990,.14,'sine',.08),90); },
+  wrong(){ beep(180,.28,'sawtooth',.09); },
+  click(){ beep(520,.05,'square',.04); },
+  tick(){ beep(880,.03,'square',.025); },
+  win(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.14,'sine',.08), i*90)); },
+  hint(){ beep(1200,.08,'triangle',.06); }
+};
+
+/* ---------- 23. TOASTS ---------- */
+function showToast(msg, type='info', ms=2600){
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(40px)'; t.style.transition='.3s'; }, ms);
+  setTimeout(()=> t.remove(), ms+320);
+}
+
+/* ---------- 24. CONFETI ---------- */
+function burstConfetti(){
+  if(reducedMotion) return;
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  canvas.style.display = 'block';
+  const parts = [];
+  for(let i=0;i<110;i++){
+    parts.push({
+      x: innerWidth/2 + (Math.random()-.5)*220,
+      y: innerHeight/2,
+      vx:(Math.random()-.5)*13,
+      vy: Math.random()*-14 - 4,
+      size: Math.random()*8 + 4,
+      color:`hsl(${Math.random()*360},90%,60%)`,
+      rot: Math.random()*Math.PI,
+      vr:(Math.random()-.5)*.3,
+      life:1
+    });
+  }
+  let frames = 0;
+  (function anim(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive = false;
+    parts.forEach(p=>{
+      p.vy += .42; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= .008;
+      if(p.life > 0) alive = true;
+      ctx.save();
+      ctx.globalAlpha = Math.max(p.life,0);
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*.6);
+      ctx.restore();
+    });
+    frames++;
+    if(alive && frames < 320) requestAnimationFrame(anim);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+  })();
+}
+
+/* ---------- 25. ELEMENTOS DOM ---------- */
+const $ = id => document.getElementById(id);
+const aiNameInput    = $('aiNameInput');
+const aiNameDisplay  = $('aiNameDisplay');
+const secondsDisplay = $('secondsDisplay');
+const timeBarFill    = $('timeBarFill');
+const promptText     = $('promptText');
+const ruleText       = $('ruleText');
+const aiResponseInput= $('aiResponseInput');
+const scoreDisplay   = $('scoreDisplay');
+const limitText      = $('limitText');
+const limitBarFill   = $('limitBarFill');
+const liveFeedback   = $('liveFeedback');
+const charCount      = $('charCount');
+const bottomBox      = $('bottomBox');
+
+/* ---------- 26. INICIALIZACIÓN ---------- */
+window.addEventListener('load', () => {
+  loadStats();
+  applyTheme(State.theme);
+  $('setSound').checked = State.sound;
+  $('setTheme').checked = State.theme === 'dark';
+  updateSoundIcon();
+  renderAchievements();
+  updateStatsUI();
+
+  aiNameInput.addEventListener('input', e => {
+    State.aiName = (e.target.value || 'IA').slice(0,18);
+    aiNameDisplay.textContent = State.aiName;
+  });
+
+  aiResponseInput.addEventListener('input', onResponseInput);
+  aiResponseInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); submitResponse(); }
+  });
+  $('thoughtInput').addEventListener('input', e => {
+    $('thoughtCount').textContent = e.target.value.length + ' car.';
+  });
+
+  loadNextSoloChallenge();
+});
+
+/* ---------- 27. CAMBIO DE MODO ---------- */
+function setMode(mode){
+  SFX.click();
+  State.mode = mode;
+  $('modeSoloBtn').classList.toggle('active', mode === 'solo');
+  $('mode2PBtn').classList.toggle('active', mode === '2p');
+  $('modeSoloBtn').setAttribute('aria-selected', mode === 'solo');
+  $('mode2PBtn').setAttribute('aria-selected', mode === '2p');
+  $('p1Form').style.display = mode === '2p' ? 'flex' : 'none';
+  restartGame();
+}
+
+/* ---------- 28. DIFICULTAD ---------- */
+function setDifficulty(level){
+  State.difficulty = level;
+  State.timeMax = level === 'easy' ? 30 : level === 'hard' ? 12 : 20;
+  $('setTime').value = State.timeMax;
+  showToast('Dificultad: ' + level, 'info', 1500);
+  restartGame();
+}
+
+/* ---------- 29. PANELES ---------- */
+function toggleThought(){
+  State.showThought = !State.showThought;
+  $('thoughtPanel').classList.toggle('active', State.showThought);
+  $('btnThought').setAttribute('aria-pressed', State.showThought);
+  SFX.click();
+}
+function toggleLimit(){
+  State.showLimit = !State.showLimit;
+  $('limitPanel').classList.toggle('active', State.showLimit);
+  $('btnLimit').setAttribute('aria-pressed', State.showLimit);
+  SFX.click();
+}
+
+/* ---------- 30. TEMA ---------- */
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  State.theme = theme;
+  $('btnTheme').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme(){
+  applyTheme(State.theme === 'dark' ? 'light' : 'dark');
+  $('setTheme').checked = State.theme === 'dark';
+  saveStats();
+}
+
+/* ---------- 31. SONIDO ---------- */
+function toggleSound(){
+  State.sound = !State.sound;
+  $('setSound').checked = State.sound;
+  updateSoundIcon();
+  if(State.sound) SFX.click();
+  saveStats();
+}
+function updateSoundIcon(){ $('btnSound').textContent = State.sound ? '🔊' : '🔇'; }
+
+/* ---------- 32. TEMPORIZADOR ---------- */
+function startTimer(){
+  clearInterval(State.timer);
+  State.paused = false;
+  State.timeLeft = State.timeMax;
+  renderTimer();
+
+  State.timer = setInterval(() => {
+    if(State.paused) return;
+    State.timeLeft--;
+    renderTimer();
+    if(State.timeLeft <= 5 && State.timeLeft > 0) SFX.tick();
+    if(State.timeLeft <= 0){
+      clearInterval(State.timer);
+      gameOver('⏰ Se agotó el tiempo de procesamiento de la IA.');
+    }
+  }, 1000);
+}
+
+function renderTimer(){
+  const pct = Math.max(0, State.timeLeft / State.timeMax * 100);
+  secondsDisplay.textContent = State.timeLeft + 's';
+  timeBarFill.style.width = pct + '%';
+  const cls = State.timeLeft <= 5 ? 'danger' : State.timeLeft <= 10 ? 'warning' : '';
+  secondsDisplay.className = 'seconds-pill ' + cls;
+  timeBarFill.className = 'time-bar-fill ' + cls;
+}
+
+function togglePause(){
+  if(!State.gameActive) return;
+  State.paused = !State.paused;
+  $('btnPause').textContent = State.paused ? '▶️ Reanudar' : '⏸️ Pausar';
+  showToast(State.paused ? '⏸️ Juego pausado' : '▶️ Continuando...', 'info', 1400);
+  SFX.click();
+}
+
+/* ---------- 33. TYPING EFFECT ---------- */
+function typeText(el, text, speed = 18){
+  if(reducedMotion){ el.textContent = text; return; }
+  el.textContent = '';
+  let i = 0;
+  clearInterval(el._typer);
+  el._typer = setInterval(() => {
+    el.textContent = text.slice(0, ++i);
+    if(i >= text.length) clearInterval(el._typer);
+  }, speed);
+}
+
+/* ---------- 34. CARGA DE RETO SOLITARIO ---------- */
+function loadNextSoloChallenge(){
+  if(State.messagesLeft <= 0){
+    gameOver('📭 Has alcanzado el límite máximo de mensajes.');
+    return;
+  }
+
+  let pool = CHALLENGES.filter(c => {
+    if(State.difficulty === 'easy')  return c.diff === 1;
+    if(State.difficulty === 'normal')return c.diff <= 2;
+    if(State.difficulty === 'hard')  return c.diff >= 2;
+    return true;
+  });
+  if(!pool.length) pool = CHALLENGES;
+
+  /* Evita repetir el mismo reto dos veces seguidas */
+  let next;
+  do { next = pool[Math.floor(Math.random()*pool.length)]; }
+  while(pool.length > 1 && next === State.currentChallenge);
+
+  State.currentChallenge = next;
+  State.usedHintThisRound = false;
+
+  typeText(promptText, next.prompt);
+  ruleText.textContent = next.rule;
+  ruleText.classList.add('flash');
+  setTimeout(()=>ruleText.classList.remove('flash'), 400);
+
+  aiResponseInput.value = '';
+  aiResponseInput.className = 'response-input';
+  liveFeedback.textContent = '';
+  liveFeedback.className = 'live-feedback';
+  charCount.textContent = '0 caracteres';
+
+  State.gameActive = true;
+  startTimer();
+}
+
+/* ---------- 35. VALIDACIÓN EN VIVO ---------- */
+function onResponseInput(){
+  const v = aiResponseInput.value;
+  charCount.textContent = v.length + ' caracteres';
+
+  if(State.mode === 'solo' && State.currentChallenge && State.currentChallenge.live){
+    const r = State.currentChallenge.live(v);
+    if(v.trim() === ''){ liveFeedback.textContent = ''; liveFeedback.className = 'live-feedback'; aiResponseInput.classList.remove('valid','invalid'); return; }
+    liveFeedback.textContent = r.ok ? '✔️ Cumples la regla' : (r.msg || '⚠️ Revisa la regla');
+    liveFeedback.className = 'live-feedback ' + (r.ok ? 'ok' : 'bad');
+    aiResponseInput.classList.toggle('valid', r.ok);
+    aiResponseInput.classList.toggle('invalid', !r.ok);
+  } else {
+    liveFeedback.textContent = v.length ? '📝 ' + v.trim().split(/\s+/).length + ' palabra(s)' : '';
+    liveFeedback.className = 'live-feedback';
+  }
+}
+
+/* ---------- 36. ENVÍO DE RESPUESTA ---------- */
+function submitResponse(){
+  const ans = aiResponseInput.value;
+
+  if(!ans.trim()){
+    showToast('✍️ Escribe una respuesta antes de enviar.', 'warn');
+    bottomBox.classList.add('shake');
+    setTimeout(()=>bottomBox.classList.remove('shake'), 500);
+    return;
+  }
+
+  if(!State.gameActive){ showToast('El juego no está activo.', 'warn'); return; }
+
+  if(State.mode === 'solo'){
+    clearInterval(State.timer);
+    State.messagesLeft--;
+    updateLimitDisplay();
+
+    if(State.currentChallenge.validate(ans)){
+      /* Acierto */
+      SFX.correct();
+      burstConfetti();
+      State.totalCorrect++;
+      State.streak++;
+      State.correctInLevel++;
+      State.score += 10 + State.streak * 2;
+      if(State.streak > State.bestStreak) State.bestStreak = State.streak;
+
+      if(State.correctInLevel >= 3){
+        State.level++;
+        State.correctInLevel = 0;
+        showToast('⬆️ ¡Subiste al nivel ' + State.level + '!', 'success');
+      }
+
+      updateStatsUI();
+      checkAchievements();
+      saveStats();
+      showToast('✅ ¡Correcto! +' + (10 + State.streak*2) + ' pts', 'success', 1600);
+
+      State.gameActive = false;
+      setTimeout(loadNextSoloChallenge, 550);
+    } else {
+      /* Fallo */
+      State.totalWrong++;
+      State.streak = 0;
+      updateStatsUI();
+      saveStats();
+      gameOver('❌ ' + State.currentChallenge.error);
+    }
+  } else {
+    /* Modo 2 jugadores: el J1 evalúa */
+    State.messagesLeft--;
+    updateLimitDisplay();
+    State.gameActive = false;
+    clearInterval(State.timer);
+    $('p1EvalArea').style.display = 'block';
+    showToast('👥 Jugador 1, evalúa la respuesta.', 'info');
+  }
+}
+
+/* ---------- 37. MODO 2 JUGADORES ---------- */
+function send2PPrompt(){
+  const p1P = $('p1Prompt').value.trim();
+  const p1R = $('p1Rule').value.trim();
+  if(!p1P){ showToast('Escribe un prompt para la IA.', 'warn'); return; }
+
+  if(!State.played2P){ State.played2P = true; checkAchievements(); }
+
+  typeText(promptText, p1P);
+  ruleText.textContent = p1R || 'Sin reglas específicas';
+  aiResponseInput.value = '';
+  aiResponseInput.className = 'response-input';
+  liveFeedback.textContent = '';
+  charCount.textContent = '0 caracteres';
+  $('p1EvalArea').style.display = 'none';
+  State.gameActive = true;
+  startTimer();
+  SFX.click();
+}
+
+function judge2P(isCorrect){
+  clearInterval(State.timer);
+  State.gameActive = false;
+
+  if(isCorrect){
+    SFX.correct(); burstConfetti();
+    State.totalCorrect++;
+    State.streak++;
+    State.score += 15;
+    if(State.streak > State.bestStreak) State.bestStreak = State.streak;
+    updateStatsUI(); checkAchievements(); saveStats();
+
+    $('p1Prompt').value = '';
+    $('p1Rule').value = '';
+    promptText.textContent = 'Esperando siguiente prompt...';
+    ruleText.textContent = '—';
+    aiResponseInput.value = '';
+    $('p1EvalArea').style.display = 'none';
+    showToast('✅ ¡Punto para el equipo!', 'success');
+  } else {
+    State.totalWrong++;
+    State.streak = 0;
+    updateStatsUI(); saveStats();
+    gameOver('❌ El Jugador 1 determinó que la IA se equivocó.');
+  }
+}
+
+/* ---------- 38. LÍMITE ---------- */
+function updateLimitDisplay(){
+  limitText.textContent = State.messagesLeft + '/10 mensajes restantes';
+  const pct = State.messagesLeft / 10 * 100;
+  limitBarFill.style.width = pct + '%';
+  limitBarFill.className = 'limit-bar-fill ' + (pct <= 20 ? 'danger' : pct <= 50 ? 'warn' : '');
+}
+
+/* ---------- 39. ESTADÍSTICAS UI ---------- */
+function updateStatsUI(){
+  $('levelDisplay').textContent  = State.level;
+  $('streakDisplay').textContent = State.streak;
+  $('bestDisplay').textContent   = State.bestStreak;
+  $('hitsDisplay').textContent   = State.totalCorrect;
+  $('missDisplay').textContent   = State.totalWrong;
+  scoreDisplay.textContent       = 'Puntos: ' + State.score;
+  updateLimitDisplay();
+  animateChip($('levelDisplay'));
+}
+
+function animateChip(el){
+  const chip = el.parentElement;
+  chip.classList.remove('pop');
+  void chip.offsetWidth;
+  chip.classList.add('pop');
+}
+
+/* ---------- 40. PISTA ---------- */
+function useHint(){
+  if(State.mode !== 'solo' || !State.currentChallenge){ showToast('Las pistas solo están en modo Solo.', 'warn'); return; }
+  if(State.usedHintThisRound){ showToast('Ya usaste la pista en este reto.', 'warn'); return; }
+  State.usedHintThisRound = true;
+  State.hintsUsed++;
+  SFX.hint();
+  showToast('💡 ' + (State.currentChallenge.hint || 'No hay pista disponible.'), 'info', 4200);
+  checkAchievements();
+  saveStats();
+}
+
+/* ---------- 41. SALTAR RETO ---------- */
+function skipChallenge(){
+  if(State.mode !== 'solo'){ showToast('Solo disponible en modo Solo.', 'warn'); return; }
+  if(State.messagesLeft <= 1){ gameOver('📭 Sin mensajes para saltar.'); return; }
+  State.skipsUsed++;
+  State.streak = 0;
+  State.messagesLeft--;
+  updateStatsUI();
+  showToast('⏭️ Reto saltado (−1 mensaje)', 'warn');
+  saveStats();
+  clearInterval(State.timer);
+  loadNextSoloChallenge();
+}
+
+/* ---------- 42. GAME OVER ---------- */
+function gameOver(reason){
+  clearInterval(State.timer);
+  State.gameActive = false;
+  SFX.wrong();
+  bottomBox.classList.add('shake');
+  setTimeout(()=>bottomBox.classList.remove('shake'), 550);
+
+  $('errorReason').textContent = reason;
+  $('goScore').textContent = 'Puntuación final: ' + State.score + ' pts · Racha máxima: ' + State.bestStreak;
+
+  if(State.score > (State.bestScore || 0)){
+    State.bestScore = State.score;
+    showToast('🏆 ¡Nuevo récord personal!', 'success', 3200);
+  }
+  saveStats();
+  openModal('gameOverModal');
+}
+
+/* ---------- 43. REINICIO ---------- */
+function restartGame(){
+  clearInterval(State.timer);
+  State.gameActive = false;
+  State.paused = false;
+  State.score = 0;
+  State.streak = 0;
+  State.level = 1;
+  State.correctInLevel = 0;
+  State.messagesLeft = 10;
+  State.played2P = State.played2P || false;
+
+  $('btnPause').textContent = '⏸️ Pausar';
+  aiResponseInput.value = '';
+  aiResponseInput.className = 'response-input';
+  liveFeedback.textContent = '';
+  charCount.textContent = '0 caracteres';
+  $('thoughtInput').value = '';
+  $('thoughtCount').textContent = '0 car.';
+
+  updateStatsUI();
+  closeModal('gameOverModal');
+
+  if(State.mode === 'solo'){
+    loadNextSoloChallenge();
+  } else {
+    promptText.textContent = '(Esperando prompt del Jugador 1...)';
+    ruleText.textContent = '—';
+    $('p1EvalArea').style.display = 'none';
+    secondsDisplay.textContent = State.timeMax + 's';
+    timeBarFill.style.width = '100%';
+    secondsDisplay.className = 'seconds-pill';
+    timeBarFill.className = 'time-bar-fill';
+  }
+  showToast('🔄 Sistema reiniciado', 'info', 1500);
+}
+
+/* ---------- 44. MODALES ---------- */
+function openModal(id){
+  const m = $(id);
+  m.classList.add('active');
+  const focusable = m.querySelector('button, input, select, textarea');
+  if(focusable) setTimeout(()=>focusable.focus(), 60);
+}
+function closeModal(id){ $(id).classList.remove('active'); }
+
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if(e.target === ov) ov.classList.remove('active'); });
+});
+
+/* ---------- 45. LOGROS: RENDER Y CHECK ---------- */
+function renderAchievements(){
+  const grid = $('achievementsGrid');
+  grid.innerHTML = '';
+  ACHIEVEMENTS.forEach(a => {
+    const unlocked = State.achievements.includes(a.id);
+    const d = document.createElement('div');
+    d.className = 'achv' + (unlocked ? ' unlocked' : '');
+    d.innerHTML = `<span class="emoji">${a.emoji}</span><strong>${a.name}</strong><br><span style="color:var(--muted)">${unlocked ? 'Desbloqueado' : 'Bloqueado'}</span>`;
+    grid.appendChild(d);
+  });
+}
+
+function checkAchievements(){
+  let newOnes = [];
+  ACHIEVEMENTS.forEach(a => {
+    if(!State.achievements.includes(a.id) && a.test(State)){
+      State.achievements.push(a.id);
+      newOnes.push(a);
+    }
+  });
+  if(newOnes.length){
+    renderAchievements();
+    newOnes.forEach((a,i)=> setTimeout(()=>{
+      showToast(`${a.emoji} Logro: ${a.name}`, 'success', 3400);
+      SFX.win();
+    }, i*450));
+  }
+}
+
+/* ---------- 46. ESTADÍSTICAS: MODAL ---------- */
+const _origOpenModal = openModal;
+openModal = function(id){
+  if(id === 'statsModal') renderStatsModal();
+  _origOpenModal(id);
+};
+
+function renderStatsModal(){
+  const total = State.totalCorrect + State.totalWrong;
+  const acc = total ? Math.round(State.totalCorrect / total * 100) : 0;
+  $('statsBody').innerHTML = `
+    <div>🎯 Partidas totales: <b>${total}</b></div>
+    <div>✅ Aciertos: <b>${State.totalCorrect}</b></div>
+    <div>❌ Fallos: <b>${State.totalWrong}</b></div>
+    <div>📈 Precisión: <b>${acc}%</b></div>
+    <div>🔥 Mejor racha: <b>${State.bestStreak}</b></div>
+    <div>🏆 Mejor puntuación: <b>${State.bestScore || 0}</b></div>
+    <div>💡 Pistas usadas: <b>${State.hintsUsed}</b></div>
+    <div>⏭️ Retos saltados: <b>${State.skipsUsed}</b></div>
+    <div>🏅 Logros: <b>${State.achievements.length}/${ACHIEVEMENTS.length}</b></div>
+  `;
+}
+
+/* ---------- 47. RESET TOTAL ---------- */
+function resetAll(){
+  if(!confirm('¿Seguro que quieres borrar todo el progreso?')) return;
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  Object.assign(State, {
+    bestStreak:0, bestScore:0, totalCorrect:0, totalWrong:0,
+    hintsUsed:0, skipsUsed:0, achievements:[]
+  });
+  renderAchievements();
+  updateStatsUI();
+  saveStats();
+  closeModal('settingsModal');
+  showToast('🗑️ Progreso borrado', 'error');
+}
+
+/* ---------- 48. ATAJOS DE TECLADO ---------- */
+document.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  const typing = tag === 'input' || tag === 'textarea';
+
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+    return;
+  }
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  if(typing) return;
+
+  const k = e.key.toLowerCase();
+  if(k === 't') toggleThought();
+  if(k === 'l') toggleLimit();
+  if(k === 'h') useHint();
+  if(k === 'p') togglePause();
+  if(k === 's') skipChallenge();
+});
+
+/* ---------- 49. AUTO-GUARDADO PERIÓDICO ---------- */
+setInterval(saveStats, 15000);
+
+/* ---------- 50. AVISO AL SALIR CON PARTIDA ACTIVA ---------- */
+window.addEventListener('beforeunload', e => {
+  if(State.gameActive && State.score > 0){
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+</script>
+</body>
+</html>
